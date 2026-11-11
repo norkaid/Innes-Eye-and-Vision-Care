@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" role="img" aria-labelledby="t">
+  <title id="t">Placeholder illustration for an eye-health article</title>
+  <rect width="400" height="240" fill="#e8eef3"/>
+  <rect x="120" y="46" width="160" height="130" rx="10" fill="#fff" stroke="#123047" stroke-width="5"/>
+  <path d="M146 82h108M146 106h108M146 130h70" stroke="#168C8C" stroke-width="8" stroke-linecap="round"/>
+  <text x="200" y="216" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#52616B">Placeholder image – replace with approved photo</text>
+</svg>

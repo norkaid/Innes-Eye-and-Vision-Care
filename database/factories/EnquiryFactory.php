@@ -1,0 +1,26 @@
+<?php
+
+namespace Database\Factories;
+
+use App\Enums\EnquiryStatus;
+use App\Models\Enquiry;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+/** @extends Factory<Enquiry> */
+class EnquiryFactory extends Factory
+{
+    public function definition(): array
+    {
+        return [
+            'name' => fake()->name(),
+            'email' => fake()->safeEmail(),
+            'subject' => fake()->sentence(4),
+            'message' => fake()->paragraph(),
+        ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterMaking(fn (Enquiry $e) => $e->status ??= EnquiryStatus::New);
+    }
+}

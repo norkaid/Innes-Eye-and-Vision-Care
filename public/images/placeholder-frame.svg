@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-labelledby="t">
+  <title id="t">Placeholder illustration of optical frames</title>
+  <rect width="400" height="300" fill="#F4EBDD"/>
+  <g fill="none" stroke="#123047" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" transform="translate(52 110)">
+    <rect x="0" y="0" width="120" height="86" rx="38" fill="#fff" fill-opacity=".6"/>
+    <rect x="176" y="0" width="120" height="86" rx="38" fill="#fff" fill-opacity=".6"/>
+    <path d="M120 34c18-16 38-16 56 0"/>
+  </g>
+  <text x="200" y="262" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#52616B">Placeholder image – replace with approved photo</text>
+</svg>

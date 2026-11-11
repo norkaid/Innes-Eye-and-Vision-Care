@@ -1,0 +1,125 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+
+@source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
+@source '../../app/**/*.php';
+
+/* Brand system – Innes Eye & Visioncare Centre */
+@theme {
+    --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-display: 'Georgia', 'Iowan Old Style', 'Times New Roman', serif;
+
+    --color-navy: #123047;
+    --color-navy-700: #0d2436;
+    --color-navy-50: #e8eef3;
+    --color-teal: #168c8c;
+    --color-teal-700: #0f6b6b; /* hover / text on light backgrounds (AA contrast) */
+    --color-teal-50: #e6f4f4;
+    --color-sky: #d9f0f2;
+    --color-sand: #f4ebdd;
+    --color-slate: #52616b;
+    --color-amber-ink: #8a5a00;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+    }
+    body {
+        @apply bg-white font-sans text-slate antialiased;
+    }
+    h1, h2, h3, h4 {
+        @apply text-navy;
+    }
+    a {
+        @apply text-teal-700;
+    }
+    /* Visible keyboard focus everywhere */
+    :focus-visible {
+        outline: 3px solid var(--color-teal);
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+    [x-cloak] {
+        display: none !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+@layer components {
+    .container-page {
+        @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+    }
+    .btn, .btn-primary, .btn-secondary, .btn-navy, .btn-danger {
+        @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold no-underline transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+    }
+    .btn-primary {
+        @apply bg-teal text-white hover:bg-teal-700;
+    }
+    .btn-secondary {
+        @apply border-2 border-navy bg-white text-navy hover:bg-navy hover:text-white;
+    }
+    .btn-navy {
+        @apply bg-navy text-white hover:bg-navy-700;
+    }
+    .btn-danger {
+        @apply border border-red-700 bg-white text-red-700 hover:bg-red-700 hover:text-white;
+    }
+    .btn-text {
+        @apply inline-flex items-center gap-1 font-semibold text-teal-700 underline-offset-4 hover:underline;
+    }
+    .btn-sm {
+        @apply px-3 py-1.5 text-xs;
+    }
+    .form-label {
+        @apply mb-1 block text-sm font-semibold text-navy;
+    }
+    .form-input {
+        @apply block w-full rounded-lg border-slate/40 bg-white text-navy shadow-sm placeholder:text-slate/60 focus:border-teal focus:ring-teal;
+    }
+    .form-input[aria-invalid='true'] {
+        @apply border-red-700 ring-1 ring-red-700;
+    }
+    .form-hint {
+        @apply mt-1 text-sm text-slate;
+    }
+    .form-error {
+        @apply mt-1 flex items-start gap-1 text-sm font-medium text-red-700;
+    }
+    .card {
+        @apply rounded-2xl border border-navy/10 bg-white shadow-sm;
+    }
+    .prose-content {
+        @apply max-w-none text-base leading-7 text-slate;
+    }
+    .prose-content h2 { @apply mt-8 mb-3 text-2xl font-semibold; }
+    .prose-content h3 { @apply mt-6 mb-2 text-xl font-semibold; }
+    .prose-content p { @apply my-4; }
+    .prose-content ul { @apply my-4 list-disc pl-6; }
+    .prose-content ol { @apply my-4 list-decimal pl-6; }
+    .prose-content li { @apply my-1; }
+    .prose-content a { @apply underline; }
+    .prose-content strong { @apply text-navy; }
+    .prose-content blockquote { @apply my-4 border-l-4 border-teal bg-sky/50 px-4 py-2; }
+    .table-admin {
+        @apply min-w-full divide-y divide-navy/10 text-sm;
+    }
+    .table-admin th {
+        @apply bg-navy-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy;
+    }
+    .table-admin td {
+        @apply px-4 py-3 align-top text-slate;
+    }
+}
