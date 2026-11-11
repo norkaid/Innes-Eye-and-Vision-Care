@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" role="img" aria-labelledby="t">
+  <title id="t">Placeholder illustration of an eye</title>
+  <rect width="400" height="260" fill="#D9F0F2"/>
+  <g transform="translate(200 120)">
+    <path d="M-130 0C-80-70 80-70 130 0C80 70-80 70-130 0Z" fill="#fff" stroke="#123047" stroke-width="8"/>
+    <circle r="44" fill="#168C8C"/>
+    <circle r="20" fill="#123047"/>
+    <circle cx="-12" cy="-12" r="8" fill="#fff"/>
+  </g>
+  <text x="200" y="236" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#52616B">Placeholder image – replace with approved photo</text>
+</svg>
