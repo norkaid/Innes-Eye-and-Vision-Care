@@ -141,6 +141,8 @@ The tests cover public pages and visibility of drafts, search and filters, booki
 
 ## Deployment (any PHP host)
 
+**Hostinger:** follow the step-by-step guide in [docs/DEPLOY_HOSTINGER.md](docs/DEPLOY_HOSTINGER.md).
+
 1. **Server:** PHP 8.3+, MySQL 8, HTTPS certificate, web root pointing at `public/`, with `storage/` and `bootstrap/cache/` writable by the web server.
 2. **Code:**
 
