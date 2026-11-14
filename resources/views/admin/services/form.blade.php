@@ -9,7 +9,7 @@
             <x-form.textarea name="short_description" label="Short description" required rows="2" maxlength="300" :value="$service->short_description" hint="Shown on service cards. Must be approved by the centre." />
             <x-form.textarea name="description" label="What the service involves" rows="8" :value="$service->description" />
             <x-form.textarea name="preparation" label="Preparation information (supplied by the clinic)" rows="4" :value="$service->preparation" />
-            <x-admin.image-field :current="$service->image_path" />
+            <x-admin.image-field :current="$service->image_path" folder="services" />
         </div>
         <div class="space-y-6">
             <div class="card space-y-4 p-6">

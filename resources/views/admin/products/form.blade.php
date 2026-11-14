@@ -15,7 +15,7 @@
             </div>
             <x-form.textarea name="short_description" label="Short description" rows="2" maxlength="300" :value="$product->short_description" />
             <x-form.textarea name="description" label="Full description" rows="6" :value="$product->description" />
-            <x-admin.image-field :current="$product->image_path" />
+            <x-admin.image-field :current="$product->image_path" folder="products" />
         </div>
         <div class="space-y-6">
             <div class="card space-y-4 p-6">

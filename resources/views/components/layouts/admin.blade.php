@@ -16,12 +16,14 @@
             ['admin.categories.index', 'Product categories', 'tag', 'products.manage', 'admin.categories.*'],
             ['admin.branches.index', 'Branches', 'building', 'branches.manage', 'admin.branches.*'],
             ['admin.articles.index', 'Health articles', 'book', 'articles.manage', 'admin.articles.*'],
+            ['admin.media.index', 'Media library', 'image', 'media.manage', 'admin.media.*'],
         ],
         'Administration' => [
             ['admin.reports.index', 'Reports', 'chart', 'reports.view', 'admin.reports.*'],
             ['admin.staff.index', 'Staff & roles', 'shield', 'staff.manage', 'admin.staff.*'],
             ['admin.settings.edit', 'Settings', 'cog', 'settings.access', 'admin.settings.*'],
             ['admin.activity', 'Activity log', 'activity', 'audit.view', 'admin.activity'],
+            ['admin.database.index', 'Database', 'database', 'database.view', 'admin.database.*'],
         ],
     ];
 @endphp

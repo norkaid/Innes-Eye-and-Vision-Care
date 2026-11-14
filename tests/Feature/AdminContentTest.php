@@ -105,7 +105,8 @@ class AdminContentTest extends TestCase
 
         $this->actingAs($admin)->post('/admin/products', $base + ['image' => UploadedFile::fake()->image('ok.png', 400, 300)->size(200)])->assertSessionHasNoErrors();
         $path = Product::sole()->image_path;
-        $this->assertStringStartsWith('products/', $path);
+        $this->assertStringStartsWith('media/products/', $path);
+        $this->assertDatabaseHas('media', ['path' => $path, 'folder' => 'products']);
         $this->assertStringNotContainsString('ok.png', $path); // random file name
     }
 

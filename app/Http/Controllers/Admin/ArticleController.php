@@ -40,7 +40,7 @@ class ArticleController extends Controller
         $article = new HealthArticle($data);
         $article->author_id = $request->user()->id;
         $this->applyStatus($article, $data);
-        $article->featured_image_path = $request->hasFile('image') ? $this->images->store($request->file('image'), 'articles') : null;
+        $article->featured_image_path = $this->images->fromRequest($request, null, 'articles');
         $article->save();
         $this->audit->log('article.created', $article, ['title' => $article->title, 'status' => $article->status->value]);
 
@@ -63,7 +63,7 @@ class ArticleController extends Controller
         $data = $this->validated($request, $article);
         $article->fill($data);
         $this->applyStatus($article, $data);
-        $article->featured_image_path = $this->images->replace($request->file('image'), $article->featured_image_path, 'articles', $request->boolean('remove_image'));
+        $article->featured_image_path = $this->images->fromRequest($request, $article->featured_image_path, 'articles');
         $article->save();
         $this->audit->log('article.updated', $article, ['title' => $article->title, 'status' => $article->status->value]);
 
@@ -109,8 +109,7 @@ class ArticleController extends Controller
             'author_display_name' => ['nullable', 'string', 'max:150'],
             'status' => ['required', Rule::enum(ArticleStatus::class)],
             'published_at' => ['nullable', 'date'],
-            'image' => ImageUploader::rules(),
-            'remove_image' => ['boolean'],
+            ...ImageUploader::fieldRules(),
         ]);
     }
 }

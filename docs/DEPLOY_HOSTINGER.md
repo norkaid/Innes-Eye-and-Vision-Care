@@ -172,3 +172,9 @@ This puts the site into maintenance mode, pulls the code, installs packages, run
 | `composer` or `php` version errors | Choose PHP 8.3 in hPanel and use the matching CLI binary (see step 2). |
 | Redirect loop on HTTPS | Set `TRUSTED_PROXIES=*` in `.env`, then run `php artisan config:cache`. |
 | Styling missing | Make sure `public/build` exists in the repository and `APP_URL` matches the domain exactly (https, with or without www). |
+
+## Viewing the database and media on Hostinger
+
+- **Database:** hPanel → *Databases* → *phpMyAdmin* → *Enter phpMyAdmin* next to your database. Super Admins can also use the read-only **Database** page in the admin dashboard.
+- **Media:** upload the logo and photos in **Admin → Media library**, then choose the logo in **Admin → Settings → Logo**. Files are saved in `~/domains/example.com/innes/storage/app/public/media/` (visible in hPanel's File Manager) and need `php artisan storage:link` to have been run once.
+

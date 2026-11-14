@@ -29,9 +29,11 @@ The original briefs are in [docs/PROJECT_BRIEF.md](docs/PROJECT_BRIEF.md) and [d
 | Customers | Contact details and appointment history; edit; deactivate |
 | Services / Products / Categories / Branches / Articles | Create, edit, publish/unpublish, archive and restore; image uploads; branch↔service links; opening hours; article draft → preview → publish |
 | Staff & roles | Create and deactivate staff, assign roles (privilege-escalation safe) |
-| Settings | Business details and About copy; appointment rules and notification settings (Super Admin only) |
+| Media library | Upload the logo, glasses photos and other images (up to 20 at once) into folders; copy links; alt text; in-use images cannot be deleted. Product, service and article forms can pick images from the library |
+| Settings | Logo, business details and About copy; appointment rules and notification settings (Super Admin only) |
 | Reports | Date-filtered totals; CSV export contains counts only, no personal data |
 | Activity log | Audit trail of administrative actions |
+| Database | Super Admin only: read-only browser of every table with row counts. Password hashes, tokens and session data are never shown |
 
 ### Roles
 
@@ -53,7 +55,7 @@ Permissions are defined in `config/innes.php` and checked with Gates on every ro
 - PHP 8.3+, **Laravel 13**, Eloquent, Form validation, Gates/Policies
 - Blade components, **Tailwind CSS 4**, **Alpine.js** (Livewire was not needed)
 - **MySQL 8.0+** (developed against MariaDB 10.11; tests also run on SQLite)
-- PHPUnit (94 tests), Laravel Pint, Vite
+- PHPUnit (102 tests), Laravel Pint, Vite
 
 ## Prerequisites
 
@@ -116,6 +118,16 @@ The demo seeder runs only when `APP_ENV` is not `production`. The password for e
 | customer@innes.test | Customer |
 
 Emails are written to `storage/logs/laravel.log` while `MAIL_MAILER=log`.
+
+### Viewing the database
+
+- **In the admin dashboard:** sign in as a Super Admin and open **Database** (read-only).
+- **Locally with SQLite:** install the *SQLite Viewer* extension in VS Code and open `database/database.sqlite`, or use [DB Browser for SQLite](https://sqlitebrowser.org/).
+- **On Hostinger:** hPanel → *Databases* → *phpMyAdmin* → *Enter phpMyAdmin* next to your database.
+
+### Media files
+
+Images uploaded in **Admin → Media library** (or on product, service and article forms) are stored in `storage/app/public/media/<folder>/` and served from `/storage/media/<folder>/...`. They are not committed to Git, so include `storage/app/public` in backups.
 
 ## Tests
 
