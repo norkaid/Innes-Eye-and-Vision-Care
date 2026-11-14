@@ -74,14 +74,14 @@ npm install
 Create your environment file and application key:
 
 ```bash
-cp .env.example .env
+cp .example 
 ```
 
 ```bash
 php artisan key:generate
 ```
 
-Create a MySQL database and user, then set `DB_DATABASE`, `DB_USERNAME` and `DB_PASSWORD` in `.env`. For local HTTP development also set `FORCE_HTTPS=false`.
+Create a MySQL database and user, then set `DB_DATABASE`, `DB_USERNAME` and `DB_PASSWORD` in ``. For local HTTP development also set `FORCE_HTTPS=false`.
 
 Run the migrations, seed demo data, link storage and build the assets:
 
@@ -105,7 +105,7 @@ Open http://localhost:8000.
 
 ### Demo accounts (local only)
 
-The demo seeder runs only when `APP_ENV` is not `production`. The password for every demo account is the value of `DEMO_USER_PASSWORD` in `.env` (default `Demo-Password-2026`).
+The demo seeder runs only when `APP_ENV` is not `production`. The password for every demo account is the value of `DEMO_USER_PASSWORD` in `` (default `Demo-Password-2026`).
 
 | Email | Role |
 |---|---|
@@ -155,7 +155,7 @@ The tests cover public pages and visibility of drafts, search and filters, booki
    ```
 
    Alternatively, build the assets locally and upload `public/build`.
-3. **`.env`:** `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://your-domain`, `FORCE_HTTPS=true`, `SESSION_SECURE_COOKIE=true`, real `MAIL_*` SMTP settings, and a least-privilege `DB_USERNAME` with rights only on this database. Never commit `.env`.
+3. **``:** `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://your-domain`, `FORCE_HTTPS=true`, `SESSION_SECURE_COOKIE=true`, real `MAIL_*` SMTP settings, and a least-privilege `DB_USERNAME` with rights only on this database. Never commit ``.
 4. **Database and setup:**
 
    ```bash
@@ -186,7 +186,7 @@ The tests cover public pages and visibility of drafts, search and filters, booki
    php artisan innes:create-admin
    ```
 
-   Or set `INITIAL_ADMIN_EMAIL` and `INITIAL_ADMIN_PASSWORD` in `.env`, run the command below, then **delete those values from `.env`**:
+   Or set `INITIAL_ADMIN_EMAIL` and `INITIAL_ADMIN_PASSWORD` in ``, run the command below, then **delete those values from ``**:
 
    ```bash
    php artisan innes:create-admin --from-env
@@ -200,8 +200,8 @@ The tests cover public pages and visibility of drafts, search and filters, booki
 ### Backups and recovery
 
 - Back up the MySQL database daily, e.g. `mysqldump --single-transaction innes > innes-$(date +%F).sql.gz`, and keep copies off-server.
-- Back up `storage/app/public` (uploaded images) and the production `.env` (stored securely, separately from the code).
-- To restore: deploy the code, restore `.env`, import the SQL dump, restore `storage/app/public`, then run `php artisan storage:link` and `php artisan config:cache`.
+- Back up `storage/app/public` (uploaded images) and the production `` (stored securely, separately from the code).
+- To restore: deploy the code, restore ``, import the SQL dump, restore `storage/app/public`, then run `php artisan storage:link` and `php artisan config:cache`.
 - Test a restore periodically, and agree a data-retention period with the business.
 
 ---
