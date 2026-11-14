@@ -34,7 +34,7 @@ class ServiceController extends Controller
         $data = $this->validated($request);
         $service = DB::transaction(function () use ($data, $request) {
             $service = new Service($data);
-            $service->image_path = $request->hasFile('image') ? $this->images->store($request->file('image'), 'services') : null;
+            $service->image_path = $this->images->fromRequest($request, null, 'services');
             $service->save();
             $service->branches()->sync($data['branches'] ?? []);
 
@@ -55,7 +55,7 @@ class ServiceController extends Controller
         $data = $this->validated($request, $service);
         DB::transaction(function () use ($data, $request, $service) {
             $service->fill($data);
-            $service->image_path = $this->images->replace($request->file('image'), $service->image_path, 'services', $request->boolean('remove_image'));
+            $service->image_path = $this->images->fromRequest($request, $service->image_path, 'services');
             $service->save();
             $service->branches()->sync($data['branches'] ?? []);
         });
@@ -95,8 +95,7 @@ class ServiceController extends Controller
             'is_published' => ['boolean'],
             'branches' => ['array'],
             'branches.*' => ['integer', 'exists:branches,id'],
-            'image' => ImageUploader::rules(),
-            'remove_image' => ['boolean'],
+            ...ImageUploader::fieldRules(),
         ]);
         $data['display_order'] = $data['display_order'] ?? 0;
         $data['is_published'] = $request->boolean('is_published');

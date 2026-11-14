@@ -26,6 +26,46 @@
             </form>
         @endcan
 
+        @can('settings.general')
+            @php
+                $logos = \App\Models\Media::where('folder', 'logo')->latest()->limit(30)->get();
+            @endphp
+            <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data" class="card space-y-5 p-6" novalidate>
+                @csrf @method('PUT')
+                <input type="hidden" name="section" value="logo">
+                <h2 class="text-lg font-semibold">Logo</h2>
+                <p class="text-sm">Shown in the website header and footer and in the admin sidebar. A PNG with a transparent background, about 400 px wide, works best.</p>
+                <div class="flex flex-wrap items-center gap-6">
+                    <div class="rounded-lg border border-navy/10 bg-white p-4"><x-logo /></div>
+                    <div class="rounded-lg bg-navy p-4"><x-logo light /></div>
+                </div>
+                <div>
+                    <label for="f-logo" class="form-label">Upload a new logo</label>
+                    <input id="f-logo" type="file" name="logo" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                        class="block w-full text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-navy file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-navy-700">
+                    <p class="form-hint">JPG, PNG or WebP. It is saved in the “Logo &amp; branding” folder of the media library.</p>
+                    @error('logo')<p class="form-error"><x-icon name="alert" class="mt-0.5 h-4 w-4 shrink-0" /> {{ $message }}</p>@enderror
+                </div>
+                @if ($logos->isNotEmpty())
+                    <fieldset>
+                        <legend class="form-label">Or choose one from the “Logo &amp; branding” folder</legend>
+                        <div class="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                            @foreach ($logos as $m)
+                                <label class="cursor-pointer overflow-hidden rounded-lg border border-navy/15 p-2 has-[:checked]:border-teal has-[:checked]:ring-2 has-[:checked]:ring-teal" title="{{ $m->original_name }}">
+                                    <input type="radio" name="logo_media_id" value="{{ $m->id }}" class="sr-only" @checked(($values['logo_path'] ?? null) === $m->path)>
+                                    <img src="{{ $m->url() }}" alt="{{ $m->alt_text ?: $m->original_name }}" class="aspect-[3/2] w-full object-contain">
+                                </label>
+                            @endforeach
+                        </div>
+                    </fieldset>
+                @endif
+                @if ($values['logo_path'] ?? null)
+                    <x-form.checkbox name="remove_logo" label="Stop using the uploaded logo (show the standard text logo)" />
+                @endif
+                <button class="btn-primary" type="submit">Save logo</button>
+            </form>
+        @endcan
+
         @can('settings.system')
             <form method="POST" action="{{ route('admin.settings.update') }}" class="card space-y-5 p-6" novalidate>
                 @csrf @method('PUT')

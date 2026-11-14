@@ -34,6 +34,20 @@ return [
     ],
 
     /*
+    | Media library folders (Admin → Media library). Files are stored in
+    | storage/app/public/media/<folder>/ and served from /storage/media/<folder>/.
+    */
+    'media_folders' => [
+        'logo' => 'Logo & branding',
+        'products' => 'Glasses & products',
+        'services' => 'Services',
+        'branches' => 'Branches & premises',
+        'team' => 'Team & practitioners',
+        'articles' => 'Articles',
+        'general' => 'General',
+    ],
+
+    /*
     | Permission catalogue. Each permission is checked through a Gate of the same name.
     */
     'permissions' => [
@@ -54,6 +68,8 @@ return [
         'reports.view' => 'View reports',
         'reports.export' => 'Export report summaries',
         'audit.view' => 'View the administrative activity log',
+        'media.manage' => 'Upload, edit and delete media library images',
+        'database.view' => 'Browse database tables (read-only, sensitive columns hidden)',
     ],
 
     /*
@@ -75,6 +91,7 @@ return [
                 'dashboard.view', 'appointments.view', 'appointments.manage', 'customers.view', 'customers.manage',
                 'enquiries.view', 'enquiries.manage', 'services.manage', 'products.manage', 'branches.manage',
                 'articles.manage', 'settings.general', 'reports.view', 'reports.export', 'audit.view',
+                'media.manage',
             ],
         ],
         'receptionist' => [
@@ -91,7 +108,7 @@ return [
             'rank' => 40,
             'description' => 'Website content: services, products and articles. No access to private appointment information.',
             'permissions' => [
-                'dashboard.view', 'services.manage', 'products.manage', 'articles.manage',
+                'dashboard.view', 'services.manage', 'products.manage', 'articles.manage', 'media.manage',
             ],
         ],
     ],
@@ -101,6 +118,7 @@ return [
     */
     'settings_defaults' => [
         'business_name' => 'Innes Eye & Visioncare Centre',
+        'logo_path' => null,
         'tagline' => 'Trusted eye care and stylish vision solutions',
         'contact_email' => null,
         'contact_phone' => null,

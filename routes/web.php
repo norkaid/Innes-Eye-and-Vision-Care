@@ -35,6 +35,9 @@ Route::post('/appointments', [Public\AppointmentController::class, 'store'])->mi
 Route::get('/appointments/received', [Public\AppointmentController::class, 'received'])->name('appointments.received');
 Route::get('/appointments/availability', [Public\AppointmentController::class, 'availability'])->middleware('throttle:60,1')->name('appointments.availability');
 
+// Media library images, stored in the database.
+Route::get('/media/{path}', Public\MediaFileController::class)->where('path', '[a-z]+/[A-Za-z0-9]+\.[a-z0-9]+')->name('media.file');
+
 Route::get('/sitemap.xml', Public\SitemapController::class)->name('sitemap');
 Route::get('/robots.txt', [Public\SitemapController::class, 'robots'])->name('robots');
 
@@ -129,6 +132,19 @@ Route::middleware(['auth', 'staff'])->prefix('admin')->name('admin.')->group(fun
         Route::resource('articles', Admin\ArticleController::class);
         Route::patch('/articles/{article}/restore', [Admin\ArticleController::class, 'restore'])->withTrashed()->name('articles.restore');
         Route::resource('article-categories', Admin\ArticleCategoryController::class)->except(['show', 'create', 'edit'])->parameters(['article-categories' => 'articleCategory']);
+    });
+
+    Route::middleware('can:media.manage')->group(function () {
+        Route::get('/media', [Admin\MediaController::class, 'index'])->name('media.index');
+        Route::post('/media', [Admin\MediaController::class, 'store'])->name('media.store');
+        Route::get('/media/{medium}/edit', [Admin\MediaController::class, 'edit'])->name('media.edit');
+        Route::patch('/media/{medium}', [Admin\MediaController::class, 'update'])->name('media.update');
+        Route::delete('/media/{medium}', [Admin\MediaController::class, 'destroy'])->name('media.destroy');
+    });
+
+    Route::middleware('can:database.view')->group(function () {
+        Route::get('/database', [Admin\DatabaseController::class, 'index'])->name('database.index');
+        Route::get('/database/{table}', [Admin\DatabaseController::class, 'show'])->where('table', '[A-Za-z0-9_]+')->name('database.show');
     });
 
     Route::middleware('can:staff.manage')->group(function () {

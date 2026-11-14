@@ -37,7 +37,8 @@ class AdminContentTest extends TestCase
         $service = Service::where('slug', 'dry-eye-clinic')->sole();
         $this->assertTrue($service->is_published);
         $this->assertTrue($service->branches->contains($branch));
-        Storage::disk('public')->assertExists($service->image_path);
+        $this->assertDatabaseHas('media', ['path' => $service->image_path, 'folder' => 'services']);
+        $this->get('/'.$service->image_path)->assertOk();
         $this->get('/services/dry-eye-clinic')->assertOk();
 
         $this->actingAs($admin)->put("/admin/services/{$service->id}", [
@@ -105,7 +106,8 @@ class AdminContentTest extends TestCase
 
         $this->actingAs($admin)->post('/admin/products', $base + ['image' => UploadedFile::fake()->image('ok.png', 400, 300)->size(200)])->assertSessionHasNoErrors();
         $path = Product::sole()->image_path;
-        $this->assertStringStartsWith('products/', $path);
+        $this->assertStringStartsWith('media/products/', $path);
+        $this->assertDatabaseHas('media', ['path' => $path, 'folder' => 'products']);
         $this->assertStringNotContainsString('ok.png', $path); // random file name
     }
 
