@@ -18,6 +18,8 @@
                                 <td class="max-w-xs align-top">
                                     @if (is_null($value))
                                         <span class="text-slate/60">NULL</span>
+                                    @elseif (in_array($col, $binary, true))
+                                        <span class="text-slate">[image file, {{ number_format($value / 1024, 1) }} KB]</span>
                                     @else
                                         <span class="block truncate" title="{{ Str::limit((string) $value, 500) }}">{{ Str::limit((string) $value, 80) }}</span>
                                     @endif

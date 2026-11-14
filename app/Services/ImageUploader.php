@@ -6,12 +6,15 @@ use App\Models\Media;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
- * Stores validated images on the configured public disk with random file names and
- * records each one in the media library. Files in the library (media/...) are only
- * deleted from the Media page, so replacing an image never breaks another page using it.
+ * Stores validated images in the database (media + media_contents tables) under a
+ * random path such as media/products/<random>.jpg, served by MediaFileController at
+ * /media/... Library images are only deleted from the Media page, so replacing an
+ * image never breaks another page using it.
  * Validation (type/size) happens in the controllers via ImageUploader::rules().
  */
 class ImageUploader
@@ -49,19 +52,26 @@ class ImageUploader
             $folder = 'general';
         }
         $size = @getimagesize($file->getRealPath()) ?: [null, null];
-        $path = $file->store("media/{$folder}", config('innes.uploads.disk'));
+        $extension = $file->guessExtension() ?: 'jpg';
+        $path = "media/{$folder}/".Str::random(40).'.'.$extension;
+        $data = file_get_contents($file->getRealPath());
 
-        return Media::create([
-            'folder' => $folder,
-            'path' => $path,
-            'original_name' => mb_substr(basename($file->getClientOriginalName()), 0, 255),
-            'alt_text' => $altText,
-            'mime_type' => $file->getMimeType() ?? 'application/octet-stream',
-            'size_bytes' => (int) $file->getSize(),
-            'width' => $size[0],
-            'height' => $size[1],
-            'uploaded_by' => Auth::id(),
-        ]);
+        return DB::transaction(function () use ($file, $folder, $altText, $size, $path, $data) {
+            $media = Media::create([
+                'folder' => $folder,
+                'path' => $path,
+                'original_name' => mb_substr(basename($file->getClientOriginalName()), 0, 255),
+                'alt_text' => $altText,
+                'mime_type' => $file->getMimeType() ?? 'application/octet-stream',
+                'size_bytes' => strlen($data),
+                'width' => $size[0],
+                'height' => $size[1],
+                'uploaded_by' => Auth::id(),
+            ]);
+            $media->content()->create(['data' => $data]);
+
+            return $media;
+        });
     }
 
     /**
@@ -110,6 +120,10 @@ class ImageUploader
         // Bundled placeholder artwork lives in /public/images.
         if (str_starts_with($path, 'images/')) {
             return asset($path);
+        }
+        // Media library images are stored in the database and served at /media/...
+        if (str_starts_with($path, 'media/')) {
+            return url($path);
         }
 
         return Storage::disk(config('innes.uploads.disk'))->url($path);

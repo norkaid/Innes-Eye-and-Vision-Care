@@ -6,6 +6,7 @@ use App\Services\ImageUploader;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Media extends Model
 {
@@ -21,6 +22,11 @@ class Media extends Model
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    public function content(): HasOne
+    {
+        return $this->hasOne(MediaContent::class);
     }
 
     public function url(): string

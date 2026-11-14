@@ -55,7 +55,7 @@ Permissions are defined in `config/innes.php` and checked with Gates on every ro
 - PHP 8.3+, **Laravel 13**, Eloquent, Form validation, Gates/Policies
 - Blade components, **Tailwind CSS 4**, **Alpine.js** (Livewire was not needed)
 - **MySQL 8.0+** (developed against MariaDB 10.11; tests also run on SQLite)
-- PHPUnit (102 tests), Laravel Pint, Vite
+- PHPUnit (103 tests), Laravel Pint, Vite
 
 ## Prerequisites
 
@@ -127,7 +127,7 @@ Emails are written to `storage/logs/laravel.log` while `MAIL_MAILER=log`.
 
 ### Media files
 
-Images uploaded in **Admin → Media library** (or on product, service and article forms) are stored in `storage/app/public/media/<folder>/` and served from `/storage/media/<folder>/...`. They are not committed to Git, so include `storage/app/public` in backups.
+Images uploaded in **Admin → Media library** (or on product, service and article forms) are **stored in the database**: details in the `media` table and the image file itself in `media_contents` (up to 16 MB each on MySQL). They are served at `/media/<folder>/<random>.<ext>` with long-term browser caching. A database backup therefore includes every image; no separate image folder needs backing up.
 
 ## Tests
 
@@ -211,9 +211,9 @@ The tests cover public pages and visibility of drafts, search and filters, booki
 
 ### Backups and recovery
 
-- Back up the MySQL database daily, e.g. `mysqldump --single-transaction innes > innes-$(date +%F).sql.gz`, and keep copies off-server.
-- Back up `storage/app/public` (uploaded images) and the production `.env` (stored securely, separately from the code).
-- To restore: deploy the code, restore `.env`, import the SQL dump, restore `storage/app/public`, then run `php artisan storage:link` and `php artisan config:cache`.
+- Back up the MySQL database daily, e.g. `mysqldump --single-transaction --hex-blob innes | gzip > innes-$(date +%F).sql.gz`, and keep copies off-server. The dump includes all uploaded images.
+- Back up the production `.env` (stored securely, separately from the code).
+- To restore: deploy the code, restore `.env`, import the SQL dump, then run `php artisan config:cache`.
 - Test a restore periodically, and agree a data-retention period with the business.
 
 ---

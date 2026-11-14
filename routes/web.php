@@ -35,6 +35,9 @@ Route::post('/appointments', [Public\AppointmentController::class, 'store'])->mi
 Route::get('/appointments/received', [Public\AppointmentController::class, 'received'])->name('appointments.received');
 Route::get('/appointments/availability', [Public\AppointmentController::class, 'availability'])->middleware('throttle:60,1')->name('appointments.availability');
 
+// Media library images, stored in the database.
+Route::get('/media/{path}', Public\MediaFileController::class)->where('path', '[a-z]+/[A-Za-z0-9]+\.[a-z0-9]+')->name('media.file');
+
 Route::get('/sitemap.xml', Public\SitemapController::class)->name('sitemap');
 Route::get('/robots.txt', [Public\SitemapController::class, 'robots'])->name('robots');
 

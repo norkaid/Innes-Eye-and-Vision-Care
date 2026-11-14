@@ -160,7 +160,7 @@ This puts the site into maintenance mode, pulls the code, installs packages, run
 - hPanel → **Files → Backups** gives automatic daily or weekly backups, depending on your plan. Check that they include the database.
 - Also export the database regularly: hPanel → **Databases → phpMyAdmin** → *Export*. Keep a copy off the server.
 - Keep a private copy of the production `.env`; it contains the `APP_KEY` needed to read encrypted sessions.
-- Uploaded images live in `innes/storage/app/public`; include this folder in your backups.
+- Uploaded images are stored in the database, so the database export above includes them.
 
 ## Troubleshooting
 
@@ -176,5 +176,5 @@ This puts the site into maintenance mode, pulls the code, installs packages, run
 ## Viewing the database and media on Hostinger
 
 - **Database:** hPanel → *Databases* → *phpMyAdmin* → *Enter phpMyAdmin* next to your database. Super Admins can also use the read-only **Database** page in the admin dashboard.
-- **Media:** upload the logo and photos in **Admin → Media library**, then choose the logo in **Admin → Settings → Logo**. Files are saved in `~/domains/example.com/innes/storage/app/public/media/` (visible in hPanel's File Manager) and need `php artisan storage:link` to have been run once.
+- **Media:** upload the logo and photos in **Admin → Media library**, then choose the logo in **Admin → Settings → Logo**. Images are stored inside the MySQL database (tables `media` and `media_contents`), so a database backup includes them. If an upload fails with a "packet too large" error, ask Hostinger support to raise MySQL's `max_allowed_packet` (images are limited to 2 MB by default, which normally fits).
 

@@ -18,8 +18,8 @@ class SecurityHeaders
         if ($request->isSecure()) {
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }
-        // Private pages must never be cached by shared caches.
-        if ($request->user()) {
+        // Private pages must never be cached by shared caches (public images are fine to cache).
+        if ($request->user() && ! $request->routeIs('media.file')) {
             $response->headers->set('Cache-Control', 'no-store, private');
         }
 

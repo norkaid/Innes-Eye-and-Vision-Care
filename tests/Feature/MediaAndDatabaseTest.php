@@ -33,9 +33,29 @@ class MediaAndDatabaseTest extends TestCase
         $media = Media::where('original_name', 'a.jpg')->sole();
         $this->assertSame(600, $media->width);
         $this->assertStringStartsWith('media/products/', $media->path);
-        Storage::disk('public')->assertExists($media->path);
+        $this->assertNotNull($media->content);
+        $this->assertSame($media->size_bytes, strlen($media->content->data));
+        Storage::disk('public')->assertDirectoryEmpty('/');
 
         $this->get('/admin/media?folder=products')->assertOk()->assertSee('a.jpg')->assertSee('b.png');
+    }
+
+    public function test_images_are_served_from_the_database(): void
+    {
+        $this->actingAs($this->staff('content-manager'))->post('/admin/media', [
+            'folder' => 'logo', 'files' => [UploadedFile::fake()->image('logo.png', 200, 100)],
+        ]);
+        $media = Media::sole();
+        $this->assertSame(url($media->path), $media->url());
+
+        auth()->logout();
+        $response = $this->get('/'.$media->path)->assertOk()->assertHeader('Content-Type', 'image/png');
+        $this->assertSame($media->content->data, $response->getContent());
+        $this->assertStringContainsString('immutable', $response->headers->get('Cache-Control'));
+
+        $this->get('/'.$media->path, ['If-None-Match' => $response->headers->get('ETag')])->assertStatus(304);
+        $this->get('/media/logo/doesnotexist.png')->assertNotFound();
+        $this->get('/media/../.env')->assertNotFound();
     }
 
     public function test_media_upload_rejects_non_images_and_unknown_folders(): void
@@ -68,17 +88,17 @@ class MediaAndDatabaseTest extends TestCase
         $this->actingAs($user)->get("/admin/products/{$product->id}/edit")->assertOk()->assertSee('Choose from media library');
 
         $this->actingAs($user)->delete("/admin/media/{$media->id}")->assertSessionHas('error');
-        Storage::disk('public')->assertExists($media->path);
+        $this->assertDatabaseHas('media_contents', ['media_id' => $media->id]);
 
         // Removing the image from the product keeps the library file.
         $this->actingAs($user)->put("/admin/products/{$product->id}", [
             'name' => 'Aviator', 'product_category_id' => $cat->id, 'availability_status' => 'enquire', 'remove_image' => '1',
         ])->assertSessionHasNoErrors();
-        Storage::disk('public')->assertExists($media->path);
+        $this->assertDatabaseHas('media_contents', ['media_id' => $media->id]);
 
         $this->actingAs($user)->delete("/admin/media/{$media->id}")->assertRedirect();
         $this->assertDatabaseCount('media', 0);
-        Storage::disk('public')->assertMissing($media->path);
+        $this->assertDatabaseCount('media_contents', 0);
     }
 
     public function test_logo_upload_is_used_on_the_public_site(): void
@@ -88,10 +108,10 @@ class MediaAndDatabaseTest extends TestCase
         ])->assertRedirect('/admin/settings')->assertSessionHasNoErrors();
 
         $media = Media::where('folder', 'logo')->sole();
-        $this->get('/')->assertOk()->assertSee(Storage::disk('public')->url($media->path), false);
+        $this->get('/')->assertOk()->assertSee(url($media->path), false);
 
         $this->actingAs($this->staff('administrator'))->put('/admin/settings', ['section' => 'logo', 'remove_logo' => '1']);
-        $this->get('/')->assertDontSee(Storage::disk('public')->url($media->path), false);
+        $this->get('/')->assertDontSee(url($media->path), false);
     }
 
     public function test_content_manager_cannot_change_logo(): void
@@ -111,6 +131,9 @@ class MediaAndDatabaseTest extends TestCase
             ->assertSee('browse@example.com')
             ->assertDontSee($customer->password)
             ->assertSee('Hidden for security: password, remember_token');
+
+        $this->actingAs($admin)->post('/admin/media', ['folder' => 'general', 'files' => [UploadedFile::fake()->image('x.jpg')]]);
+        $this->actingAs($admin)->get('/admin/database/media_contents')->assertOk()->assertSee('[image file,');
 
         $this->actingAs($admin)->get('/admin/database/sessions')->assertNotFound();
         $this->actingAs($admin)->get('/admin/database/no_such_table')->assertNotFound();

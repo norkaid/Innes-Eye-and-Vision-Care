@@ -37,7 +37,8 @@ class AdminContentTest extends TestCase
         $service = Service::where('slug', 'dry-eye-clinic')->sole();
         $this->assertTrue($service->is_published);
         $this->assertTrue($service->branches->contains($branch));
-        Storage::disk('public')->assertExists($service->image_path);
+        $this->assertDatabaseHas('media', ['path' => $service->image_path, 'folder' => 'services']);
+        $this->get('/'.$service->image_path)->assertOk();
         $this->get('/services/dry-eye-clinic')->assertOk();
 
         $this->actingAs($admin)->put("/admin/services/{$service->id}", [

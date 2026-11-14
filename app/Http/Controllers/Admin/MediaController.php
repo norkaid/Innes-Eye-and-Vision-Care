@@ -7,7 +7,6 @@ use App\Models\Media;
 use App\Services\AuditLogger;
 use App\Services\ImageUploader;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 /**
@@ -77,9 +76,8 @@ class MediaController extends Controller
         if ($usages) {
             return back()->with('error', 'This image is still used ('.implode('; ', $usages).'). Choose another image there first.');
         }
-        Storage::disk(config('innes.uploads.disk'))->delete($medium->path);
         $this->audit->log('media.deleted', $medium, ['file' => $medium->original_name]);
-        $medium->delete();
+        $medium->delete(); // the stored image is removed with it (cascade)
 
         return redirect()->route('admin.media.index', ['folder' => $medium->folder])->with('success', 'Image deleted.');
     }

@@ -24,6 +24,9 @@ class DatabaseController extends Controller
         'password', 'remember_token', 'token', 'payload', 'two_factor_secret', 'two_factor_recovery_codes',
     ];
 
+    /** Binary columns (image files) are shown as a size instead of raw bytes. */
+    private const BINARY_COLUMNS = ['media_contents.data'];
+
     public function index()
     {
         $tables = collect($this->tables())->map(fn (string $name) => [
@@ -47,7 +50,11 @@ class DatabaseController extends Controller
         $visible = array_values(array_diff($columns, self::HIDDEN_COLUMNS));
         $hidden = array_values(array_intersect($columns, self::HIDDEN_COLUMNS));
 
-        $query = DB::table($table)->select($visible);
+        $binary = array_values(array_filter($visible, fn ($c) => in_array("{$table}.{$c}", self::BINARY_COLUMNS, true)));
+        $query = DB::table($table)->select(array_diff($visible, $binary));
+        foreach ($binary as $column) {
+            $query->selectRaw('length('.DB::getQueryGrammar()->wrap($column).') as '.DB::getQueryGrammar()->wrap($column));
+        }
         if (in_array('id', $columns, true)) {
             $query->orderByDesc('id');
         }
@@ -61,6 +68,7 @@ class DatabaseController extends Controller
             'table' => $table,
             'label' => Str::headline($table),
             'columns' => $visible,
+            'binary' => $binary,
             'hidden' => $hidden,
             'rows' => $rows,
         ]);
