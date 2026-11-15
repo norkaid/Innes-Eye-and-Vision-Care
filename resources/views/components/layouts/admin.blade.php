@@ -24,6 +24,7 @@
             ['admin.settings.edit', 'Settings', 'cog', 'settings.access', 'admin.settings.*'],
             ['admin.activity', 'Activity log', 'activity', 'audit.view', 'admin.activity'],
             ['admin.database.index', 'Database', 'database', 'database.view', 'admin.database.*'],
+            ['admin.content-transfer.index', 'Content transfer', 'external', 'content.transfer', 'admin.content-transfer.*'],
         ],
     ];
 @endphp

@@ -34,6 +34,7 @@ The original briefs are in [docs/PROJECT_BRIEF.md](docs/PROJECT_BRIEF.md) and [d
 | Reports | Date-filtered totals; CSV export contains counts only, no personal data |
 | Activity log | Audit trail of administrative actions |
 | Database | Super Admin only: read-only browser of every table with row counts. Password hashes, tokens and session data are never shown |
+| Content transfer | Super Admin only: download all website content (settings, logo, images, branches, services, products, articles) as one file and import it on another copy of the site, e.g. from a PC to the live server. Accounts, appointments and enquiries are never included. Also `php artisan innes:export-content` / `innes:import-content` |
 
 ### Roles
 
@@ -55,7 +56,7 @@ Permissions are defined in `config/innes.php` and checked with Gates on every ro
 - PHP 8.3+, **Laravel 13**, Eloquent, Form validation, Gates/Policies
 - Blade components, **Tailwind CSS 4**, **Alpine.js** (Livewire was not needed)
 - **MySQL 8.0+** (developed against MariaDB 10.11; tests also run on SQLite)
-- PHPUnit (109 tests), Laravel Pint, Vite
+- PHPUnit (118 tests), Laravel Pint, Vite
 
 ## Prerequisites
 

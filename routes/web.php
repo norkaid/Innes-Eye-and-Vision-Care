@@ -142,6 +142,12 @@ Route::middleware(['auth', 'staff'])->prefix('admin')->name('admin.')->group(fun
         Route::delete('/media/{medium}', [Admin\MediaController::class, 'destroy'])->name('media.destroy');
     });
 
+    Route::middleware('can:content.transfer')->group(function () {
+        Route::get('/content-transfer', [Admin\ContentTransferController::class, 'index'])->name('content-transfer.index');
+        Route::post('/content-transfer/export', [Admin\ContentTransferController::class, 'export'])->name('content-transfer.export');
+        Route::post('/content-transfer/import', [Admin\ContentTransferController::class, 'import'])->name('content-transfer.import');
+    });
+
     Route::middleware('can:database.view')->group(function () {
         Route::get('/database', [Admin\DatabaseController::class, 'index'])->name('database.index');
         Route::get('/database/{table}', [Admin\DatabaseController::class, 'show'])->where('table', '[A-Za-z0-9_]+')->name('database.show');

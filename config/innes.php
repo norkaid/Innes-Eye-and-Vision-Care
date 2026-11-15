@@ -73,6 +73,7 @@ return [
         'audit.view' => 'View the administrative activity log',
         'media.manage' => 'Upload, edit and delete media library images',
         'database.view' => 'Browse database tables (read-only, sensitive columns hidden)',
+        'content.transfer' => 'Export website content to a file and import it on another copy of the site',
     ],
 
     /*

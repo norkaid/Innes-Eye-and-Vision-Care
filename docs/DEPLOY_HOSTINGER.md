@@ -144,6 +144,20 @@ When all content is verified, set `SHOW_DEMO_NOTICE=false` in `.env`, then run:
 php artisan config:cache
 ```
 
+## 5a. Move your content from your PC to the live site
+
+Everything you entered on your PC (business details, logo, pictures, branches, services, products and articles) can be copied to the live site. Staff and customer accounts, appointments and enquiries are never copied.
+
+1. **On your PC:** sign in as Super Admin → **Content transfer** → leave "Also include items that are still demo content" unticked → **Download export file**. You get `innes-content-<date>.json.gz`.
+2. **On the live site:** sign in as the Super Admin you created in step 3 → **Content transfer** → choose the file → tick the confirmation → **Import content**.
+3. Check the website. You can keep editing everything in the live admin as normal, or repeat the export/import later: items with the same web address are updated and nothing is deleted.
+
+If the file is bigger than the live server accepts for upload, copy it to the server (hPanel → File Manager, e.g. into `innes/storage/app/`) and run:
+
+```bash
+cd ~/domains/example.com/innes && php artisan innes:import-content storage/app/innes-content-<date>.json.gz
+```
+
 ## 6. Updating the site later
 
 After new code has been pushed to GitHub:
