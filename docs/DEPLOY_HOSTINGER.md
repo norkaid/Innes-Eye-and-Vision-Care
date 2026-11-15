@@ -176,5 +176,5 @@ This puts the site into maintenance mode, pulls the code, installs packages, run
 ## Viewing the database and media on Hostinger
 
 - **Database:** hPanel → *Databases* → *phpMyAdmin* → *Enter phpMyAdmin* next to your database. Super Admins can also use the read-only **Database** page in the admin dashboard.
-- **Media:** upload the logo and photos in **Admin → Media library**, then choose the logo in **Admin → Settings → Logo**. Images are stored inside the MySQL database (tables `media` and `media_contents`), so a database backup includes them. If an upload fails with a "packet too large" error, ask Hostinger support to raise MySQL's `max_allowed_packet` (images are limited to 2 MB by default, which normally fits).
+- **Media:** upload the logo and photos in **Admin → Media library**, then choose the logo in **Admin → Settings → Logo**. Images are stored inside the MySQL database (tables `media` and `media_contents`), so a database backup includes them. Photos up to 10 MB are accepted and shrunk to 2000 px before saving. `public/.user.ini` raises PHP's upload limits; if **Admin → Media library** still shows a warning about upload limits, set `upload_max_filesize = 20M` and `post_max_size = 64M` in hPanel → *Advanced* → *PHP Configuration* → *PHP options*.
 

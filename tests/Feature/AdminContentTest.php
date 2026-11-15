@@ -101,7 +101,7 @@ class AdminContentTest extends TestCase
         $this->actingAs($admin)->post('/admin/products', $base + ['image' => UploadedFile::fake()->create('doc.pdf', 100, 'application/pdf')])->assertSessionHasErrors('image');
         $this->actingAs($admin)->post('/admin/products', $base + ['image' => UploadedFile::fake()->create('shell.php', 10, 'image/jpeg')])->assertSessionHasErrors('image');
         $this->actingAs($admin)->post('/admin/products', $base + ['image' => UploadedFile::fake()->create('vector.svg', 10, 'image/svg+xml')])->assertSessionHasErrors('image');
-        $this->actingAs($admin)->post('/admin/products', $base + ['image' => UploadedFile::fake()->image('huge.jpg')->size(5000)])->assertSessionHasErrors('image');
+        $this->actingAs($admin)->post('/admin/products', $base + ['image' => UploadedFile::fake()->image('huge.jpg')->size(11000)])->assertSessionHasErrors('image');
         $this->assertDatabaseCount('products', 0);
 
         $this->actingAs($admin)->post('/admin/products', $base + ['image' => UploadedFile::fake()->image('ok.png', 400, 300)->size(200)])->assertSessionHasNoErrors();

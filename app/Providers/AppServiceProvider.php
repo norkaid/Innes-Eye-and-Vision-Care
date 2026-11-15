@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Services\ImageUploader;
 use App\Services\Settings;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -26,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->isProduction() && config('app.force_https')) {
             URL::forceScheme('https');
         }
+
+        // Shows the real upload limit in the "could not be uploaded" message.
+        Validator::replacer('uploaded', fn (string $message) => str_replace(':max_upload', ImageUploader::maxLabel(), $message));
 
         // One Gate per permission in config/innes.php.
         foreach (array_keys(config('innes.permissions')) as $permission) {

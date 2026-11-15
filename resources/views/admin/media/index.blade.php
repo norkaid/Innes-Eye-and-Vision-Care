@@ -1,8 +1,15 @@
 <x-layouts.admin title="Media library">
+    @php($problems = \App\Services\ImageUploader::serverProblems())
+    @if ($problems)
+        <x-alert type="error" title="Uploads are limited by this server's PHP settings" class="mb-6">
+            <ul class="mt-1 list-disc space-y-1 pl-5">@foreach ($problems as $problem)<li>{{ $problem }}</li>@endforeach</ul>
+            <p class="mt-2">After saving the file, stop the site (Ctrl+C) and start it again with <code>php artisan serve</code>. On Hostinger, change these in hPanel → Advanced → PHP Configuration → PHP options.</p>
+        </x-alert>
+    @endif
     <form method="POST" action="{{ route('admin.media.store') }}" enctype="multipart/form-data" class="card mb-6 space-y-4 p-6" novalidate>
         @csrf
         <h2 class="text-lg font-semibold">Upload images</h2>
-        <p class="text-sm">Upload the logo, photos of glasses and frames, branch photos and other pictures. Choose a folder to keep them organised. Up to 20 files at once; JPG, PNG or WebP, maximum {{ round(config('innes.uploads.max_kb') / 1024, 1) }} MB each. Use only images the centre owns or has licensed.</p>
+        <p class="text-sm">Upload the logo, photos of glasses and frames, branch photos and other pictures. Choose a folder to keep them organised. Up to 20 files at once; JPG, PNG or WebP, up to {{ \App\Services\ImageUploader::maxLabel() }} each. Large photos are shrunk automatically to {{ config('innes.uploads.max_dimension') }} pixels wide. Use only images the centre owns or has licensed.</p>
         <div class="grid gap-4 md:grid-cols-3">
             <x-form.select name="folder" label="Folder" required :options="$folders" :value="$folder ?? 'products'" />
             <x-form.input name="alt_text" label="Description (alt text)" hint="Describes the picture for screen readers, e.g. “Black rectangular acetate frame”." />

@@ -13,7 +13,7 @@
     @endif
     <input id="f-{{ $name }}" type="file" name="{{ $name }}" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" aria-describedby="f-{{ $name }}-hint @error($name) f-{{ $name }}-error @enderror" @error($name) aria-invalid="true" @enderror
         class="block w-full text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-navy file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-navy-700">
-    <p id="f-{{ $name }}-hint" class="form-hint">Upload a new picture (JPG, PNG or WebP, maximum {{ round(config('innes.uploads.max_kb') / 1024, 1) }} MB; it is also added to the media library), or choose one already in the library below. Use only images the centre owns or has licensed.</p>
+    <p id="f-{{ $name }}-hint" class="form-hint">Upload a new picture (JPG, PNG or WebP, up to {{ \App\Services\ImageUploader::maxLabel() }}; large photos are shrunk automatically and added to the media library), or choose one already in the library below. Use only images the centre owns or has licensed.</p>
     @error($name)<p id="f-{{ $name }}-error" class="form-error"><x-icon name="alert" class="mt-0.5 h-4 w-4 shrink-0" /> {{ $message }}</p>@enderror
 
     @if ($library->isNotEmpty())

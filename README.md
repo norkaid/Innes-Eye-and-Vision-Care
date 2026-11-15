@@ -55,7 +55,7 @@ Permissions are defined in `config/innes.php` and checked with Gates on every ro
 - PHP 8.3+, **Laravel 13**, Eloquent, Form validation, Gates/Policies
 - Blade components, **Tailwind CSS 4**, **Alpine.js** (Livewire was not needed)
 - **MySQL 8.0+** (developed against MariaDB 10.11; tests also run on SQLite)
-- PHPUnit (103 tests), Laravel Pint, Vite
+- PHPUnit (109 tests), Laravel Pint, Vite
 
 ## Prerequisites
 
@@ -119,6 +119,8 @@ The demo seeder runs only when `APP_ENV` is not `production`. The password for e
 
 Emails are written to `storage/logs/laravel.log` while `MAIL_MAILER=log`.
 
+**Uploading photos locally:** PHP's default `php.ini` only accepts 2 MB per file. In your `php.ini` (run `php --ini` to find it) set `upload_max_filesize = 20M` and `post_max_size = 64M`, then restart `php artisan serve`. *Admin → Media library* shows a warning while these limits are too low.
+
 ### Viewing the database
 
 - **In the admin dashboard:** sign in as a Super Admin and open **Database** (read-only).
@@ -127,7 +129,7 @@ Emails are written to `storage/logs/laravel.log` while `MAIL_MAILER=log`.
 
 ### Media files
 
-Images uploaded in **Admin → Media library** (or on product, service and article forms) are **stored in the database**: details in the `media` table and the image file itself in `media_contents` (up to 16 MB each on MySQL). They are served at `/media/<folder>/<random>.<ext>` with long-term browser caching. A database backup therefore includes every image; no separate image folder needs backing up.
+Images uploaded in **Admin → Media library** (or on product, service and article forms) are **stored in the database**: details in the `media` table and the image file itself in `media_contents` (photos up to 10 MB are accepted, turned the right way up and shrunk to 2000 px before saving). They are served at `/media/<folder>/<random>.<ext>` with long-term browser caching. A database backup therefore includes every image; no separate image folder needs backing up.
 
 ## Tests
 

@@ -6,6 +6,7 @@ use App\Models\Media;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\User;
+use App\Services\ImageUploader;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -143,5 +144,74 @@ class MediaAndDatabaseTest extends TestCase
     public function test_administrator_cannot_browse_database(): void
     {
         $this->actingAs($this->staff('administrator'))->get('/admin/database')->assertForbidden();
+    }
+
+    public function test_large_phone_photo_is_accepted_and_shrunk(): void
+    {
+        config(['innes.uploads.max_dimension' => 2000]);
+        $this->actingAs($this->staff('content-manager'))->post('/admin/media', [
+            'folder' => 'products', 'files' => [UploadedFile::fake()->image('phone.jpg', 4000, 3000)],
+        ])->assertSessionHasNoErrors();
+
+        $media = Media::sole();
+        $this->assertSame(2000, $media->width);
+        $this->assertSame(1500, $media->height);
+        $this->assertSame('image/jpeg', $media->mime_type);
+        $this->assertSame([2000, 1500], array_slice(getimagesizefromstring($media->content->data), 0, 2));
+        $this->assertSame(strlen($media->content->data), $media->size_bytes);
+    }
+
+    public function test_png_logo_keeps_its_format_when_shrunk(): void
+    {
+        $this->actingAs($this->staff('administrator'))->post('/admin/media', [
+            'folder' => 'logo', 'files' => [UploadedFile::fake()->image('logo.png', 3000, 1000)],
+        ])->assertSessionHasNoErrors();
+
+        $media = Media::sole();
+        $this->assertSame('image/png', $media->mime_type);
+        $this->assertStringEndsWith('.png', $media->path);
+        $this->assertSame(2000, $media->width);
+    }
+
+    public function test_photos_up_to_ten_megabytes_pass_validation(): void
+    {
+        config(['innes.uploads.max_kb' => 10240]);
+        $this->actingAs($this->staff('content-manager'))->post('/admin/media', [
+            'folder' => 'products', 'files' => [UploadedFile::fake()->image('big.jpg', 800, 600)->size(6000)],
+        ])->assertSessionHasNoErrors();
+        $this->assertDatabaseCount('media', 1);
+
+        $this->actingAs($this->staff('content-manager'))->post('/admin/media', [
+            'folder' => 'products', 'files' => [UploadedFile::fake()->image('huge.jpg', 800, 600)->size(11000)],
+        ])->assertSessionHasErrors('files.0');
+    }
+
+    public function test_failed_php_upload_shows_a_helpful_message(): void
+    {
+        $failed = new UploadedFile(UploadedFile::fake()->image('x.jpg')->getRealPath(), 'x.jpg', 'image/jpeg', UPLOAD_ERR_INI_SIZE, true);
+        $this->actingAs($this->staff('content-manager'))
+            ->post('/admin/media', ['folder' => 'products', 'files' => [$failed]])
+            ->assertSessionHasErrors(['files.0' => 'The image could not be uploaded. It is probably bigger than the server allows (currently '.ImageUploader::maxLabel().' per file). Choose a smaller picture, or raise the PHP upload limit (see the warning in Media library).']);
+    }
+
+    public function test_media_library_warns_about_low_upload_limits(): void
+    {
+        config(['innes.uploads.max_kb' => 2048]);
+        $this->actingAs($this->staff('content-manager'))->get('/admin/media')->assertSee('UPLOAD_MAX_KB=10240');
+        config(['innes.uploads.max_kb' => 10240]);
+
+        $response = $this->actingAs($this->staff('content-manager'))->get('/admin/media')->assertOk();
+        if ((int) ini_get('upload_max_filesize') < 10 && str_ends_with(strtoupper(ini_get('upload_max_filesize')), 'M')) {
+            $response->assertSee('upload_max_filesize = 20M');
+        } else {
+            $response->assertDontSee('upload_max_filesize = 20M');
+        }
+    }
+
+    public function test_too_large_request_shows_friendly_page(): void
+    {
+        $this->actingAs($this->staff('content-manager'))
+            ->call('POST', '/admin/media', [], [], [], ['CONTENT_LENGTH' => (string) (1024 ** 3)])
+            ->assertStatus(413)->assertSee('The upload was too large');
     }
 }

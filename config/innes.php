@@ -29,7 +29,10 @@ return [
 
     'uploads' => [
         'disk' => env('UPLOADS_DISK', 'public'),
-        'max_kb' => (int) env('UPLOAD_MAX_KB', 2048),
+        // Largest file accepted (phone photos are often 3–8 MB). Photos are then shrunk
+        // to max_dimension pixels on their longest side before being stored.
+        'max_kb' => (int) env('UPLOAD_MAX_KB', 10240),
+        'max_dimension' => (int) env('UPLOAD_MAX_DIMENSION', 2000),
         'mimes' => ['jpg', 'jpeg', 'png', 'webp'],
     ],
 
