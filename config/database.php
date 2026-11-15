@@ -38,8 +38,8 @@ return [
             'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
-            'busy_timeout' => null,
-            'journal_mode' => null,
+            'busy_timeout' => env('DB_BUSY_TIMEOUT', 5000), // wait up to 5 s if another program (e.g. DB Browser) is using the file
+            'journal_mode' => env('DB_JOURNAL_MODE'), // set to wal to let DB Browser read while the site writes
             'synchronous' => null,
             'transaction_mode' => 'DEFERRED',
         ],
