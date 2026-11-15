@@ -5,10 +5,13 @@ namespace Tests\Feature;
 use App\Models\Media;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\Service;
 use App\Models\User;
+use App\Services\ImageUploader;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
 class MediaAndDatabaseTest extends TestCase
@@ -150,7 +153,7 @@ class MediaAndDatabaseTest extends TestCase
         config(['innes.uploads.max_dimension' => 2000]);
         $this->actingAs($this->staff('content-manager'))->post('/admin/media', [
             'folder' => 'products', 'files' => [UploadedFile::fake()->image('phone.jpg', 4000, 3000)],
-        ])->assertSessionHasNoErrors();
+        ])->assertRedirect()->assertSessionHasNoErrors();
 
         $media = Media::sole();
         $this->assertSame(2000, $media->width);
@@ -223,5 +226,35 @@ class MediaAndDatabaseTest extends TestCase
         $this->actingAs($this->staff('content-manager'))
             ->call('POST', '/admin/media', [], [], [], ['CONTENT_LENGTH' => (string) (1024 ** 3)])
             ->assertStatus(413)->assertSee('The upload was too large');
+    }
+
+    public function test_upload_validation_works_when_realpath_of_temp_file_fails(): void
+    {
+        // Windows with an upload folder users cannot list: realpath() returns false.
+        $source = UploadedFile::fake()->image('photo.jpg', 800, 600);
+        $file = new class($source->getPathname(), 'photo.jpg', 'image/jpeg', null, true) extends UploadedFile
+        {
+            public function getRealPath(): string|false
+            {
+                return false;
+            }
+        };
+
+        $validator = Validator::make(['image' => $file], ['image' => ImageUploader::rules()]);
+        $this->assertTrue($validator->passes(), implode(' ', $validator->errors()->all()));
+
+        $media = app(ImageUploader::class)->storeMedia($file, 'services');
+        $this->assertSame(800, $media->width);
+    }
+
+    public function test_service_form_upload_saves_image(): void
+    {
+        $service = Service::factory()->create();
+        $this->actingAs($this->staff('administrator'))->put("/admin/services/{$service->id}", [
+            'name' => $service->name, 'short_description' => 'x', 'is_published' => '1',
+            'image' => UploadedFile::fake()->image('eye.jpg', 1200, 800)->size(181),
+        ])->assertRedirect('/admin/services')->assertSessionHasNoErrors();
+
+        $this->assertStringStartsWith('media/services/', $service->fresh()->image_path);
     }
 }

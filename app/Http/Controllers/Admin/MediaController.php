@@ -37,7 +37,7 @@ class MediaController extends Controller
         $data = $request->validate([
             'folder' => ['required', Rule::in(array_keys(config('innes.media_folders')))],
             'files' => ['required', 'array', 'min:1', 'max:20'],
-            'files.*' => array_values(array_diff(ImageUploader::rules(), ['nullable'])),
+            'files.*' => array_values(array_filter(ImageUploader::rules(), fn ($rule) => $rule !== 'nullable')),
             'alt_text' => ['nullable', 'string', 'max:255'],
         ], [], ['files.*' => 'image']);
 

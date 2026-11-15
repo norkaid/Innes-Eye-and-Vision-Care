@@ -19,15 +19,39 @@ use Illuminate\Support\Str;
  */
 class ImageUploader
 {
-    /** @return list<string> */
+    /** Largest picture accepted, in pixels per side (it is shrunk before saving). */
+    public const MAX_PIXELS_PER_SIDE = 12000;
+
+    /** @return list<mixed> */
     public static function rules(): array
     {
         return [
             'nullable', 'file', 'image',
             'mimes:'.implode(',', config('innes.uploads.mimes')),
             'max:'.config('innes.uploads.max_kb'),
-            'dimensions:max_width=12000,max_height=12000',
+            self::pixelSizeRule(),
         ];
+    }
+
+    /**
+     * Checks the picture's size in pixels. Laravel's own "dimensions" rule resolves the
+     * temporary upload with realpath(), which fails on some Windows set-ups (an upload
+     * folder users can write to but not list) and crashes with "Path must not be empty".
+     * This reads the file by its path instead.
+     */
+    private static function pixelSizeRule(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail): void {
+            if (! $value instanceof UploadedFile || ! $value->isValid()) {
+                return; // reported by the "file"/"uploaded" rules
+            }
+            $size = @getimagesize($value->getPathname());
+            if (! $size) {
+                $fail('The :attribute could not be read as a picture. Save it again as JPG or PNG and retry.');
+            } elseif ($size[0] > self::MAX_PIXELS_PER_SIDE || $size[1] > self::MAX_PIXELS_PER_SIDE) {
+                $fail('The :attribute is too large in pixels. Choose a picture under '.number_format(self::MAX_PIXELS_PER_SIDE).' × '.number_format(self::MAX_PIXELS_PER_SIDE).' pixels.');
+            }
+        };
     }
 
     /**
@@ -150,7 +174,7 @@ class ImageUploader
         if (! array_key_exists($folder, config('innes.media_folders'))) {
             $folder = 'general';
         }
-        $image = app(ImageOptimizer::class)->optimize($file->getRealPath(), (string) $file->getMimeType());
+        $image = app(ImageOptimizer::class)->optimize($file->getPathname(), (string) $file->getMimeType());
         $path = "media/{$folder}/".Str::random(40).'.'.$image['extension'];
         $data = $image['data'];
 
