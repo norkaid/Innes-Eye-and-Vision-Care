@@ -7,6 +7,7 @@ use App\Services\ImageUploader;
 use App\Services\Settings;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -29,8 +30,12 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-        // Shows the real upload limit in the "could not be uploaded" message.
-        Validator::replacer('uploaded', fn (string $message) => str_replace(':max_upload', ImageUploader::maxLabel(), $message));
+        // Explains why PHP could not receive an uploaded file (size, temp folder, ...).
+        Validator::replacer('uploaded', function (string $message, string $attribute, string $rule, array $parameters, $validator) {
+            $file = data_get($validator->getData(), $attribute);
+
+            return ImageUploader::uploadErrorMessage($file instanceof UploadedFile ? $file->getError() : null, $message);
+        });
 
         // One Gate per permission in config/innes.php.
         foreach (array_keys(config('innes.permissions')) as $permission) {

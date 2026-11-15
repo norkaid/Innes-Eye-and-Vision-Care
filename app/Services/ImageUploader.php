@@ -63,6 +63,10 @@ class ImageUploader
         if (! filter_var(ini_get('file_uploads'), FILTER_VALIDATE_BOOL)) {
             $problems[] = "File uploads are switched off in PHP. In {$ini} set: file_uploads = On";
         }
+        $tmp = self::uploadTempDir();
+        if (! is_dir($tmp) || ! is_writable($tmp)) {
+            $problems[] = "PHP's temporary upload folder \"{$tmp}\" does not exist or cannot be written to, so every upload fails. In {$ini} set upload_tmp_dir to a folder that exists, e.g.: upload_tmp_dir = \"".(PHP_OS_FAMILY === 'Windows' ? 'C:\\Windows\\Temp' : '/tmp').'"';
+        }
         if (! extension_loaded('fileinfo')) {
             $problems[] = "The PHP \"fileinfo\" extension is off, so uploaded files cannot be checked. In {$ini} remove the ; in front of: extension=fileinfo";
         }
@@ -83,6 +87,30 @@ class ImageUploader
         }
 
         return $problems;
+    }
+
+    /** The folder PHP writes uploads to before the site reads them. */
+    public static function uploadTempDir(): string
+    {
+        $dir = (string) ini_get('upload_tmp_dir');
+
+        return $dir !== '' ? $dir : sys_get_temp_dir();
+    }
+
+    /** A specific explanation for PHP's upload error codes. */
+    public static function uploadErrorMessage(?int $error, string $fallback): string
+    {
+        $ini = php_ini_loaded_file() ?: 'php.ini';
+        $tooBig = 'The image could not be uploaded because it is bigger than PHP allows (upload_max_filesize = '.ini_get('upload_max_filesize')."). Choose a smaller picture, or raise upload_max_filesize in {$ini} and restart the site.";
+
+        return match ($error) {
+            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => $tooBig,
+            UPLOAD_ERR_PARTIAL => 'The image was only partly received (the connection was interrupted). Please try again.',
+            UPLOAD_ERR_NO_TMP_DIR => "The image could not be uploaded because PHP has no temporary folder for uploads. In {$ini} set upload_tmp_dir to a folder that exists, then restart the site.",
+            UPLOAD_ERR_CANT_WRITE => 'The image could not be uploaded because PHP could not save it to its temporary folder ('.self::uploadTempDir()."). Check that the folder exists and has free space, or set upload_tmp_dir in {$ini} to another folder, then restart the site.",
+            UPLOAD_ERR_EXTENSION => 'The image could not be uploaded because a PHP extension blocked it. Check the PHP settings.',
+            default => str_replace(':max_upload', self::maxLabel(), $fallback).' (PHP upload error code: '.($error ?? 'unknown').')',
+        };
     }
 
     private static function iniBytes(string $value): int

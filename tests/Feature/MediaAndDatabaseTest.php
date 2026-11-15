@@ -6,7 +6,6 @@ use App\Models\Media;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\User;
-use App\Services\ImageUploader;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -191,7 +190,18 @@ class MediaAndDatabaseTest extends TestCase
         $failed = new UploadedFile(UploadedFile::fake()->image('x.jpg')->getRealPath(), 'x.jpg', 'image/jpeg', UPLOAD_ERR_INI_SIZE, true);
         $this->actingAs($this->staff('content-manager'))
             ->post('/admin/media', ['folder' => 'products', 'files' => [$failed]])
-            ->assertSessionHasErrors(['files.0' => 'The image could not be uploaded. It is probably bigger than the server allows (currently '.ImageUploader::maxLabel().' per file). Choose a smaller picture, or raise the PHP upload limit (see the warning in Media library).']);
+            ->assertInvalid(['files.0' => 'bigger than PHP allows']);
+
+        $noTemp = new UploadedFile(UploadedFile::fake()->image('y.jpg')->getRealPath(), 'y.jpg', 'image/jpeg', UPLOAD_ERR_CANT_WRITE, true);
+        $this->actingAs($this->staff('content-manager'))
+            ->post('/admin/media', ['folder' => 'products', 'files' => [$noTemp]])
+            ->assertInvalid(['files.0' => 'temporary folder']);
+
+        $productForm = new UploadedFile(UploadedFile::fake()->image('z.jpg')->getRealPath(), 'z.jpg', 'image/jpeg', UPLOAD_ERR_NO_TMP_DIR, true);
+        $cat = ProductCategory::factory()->create();
+        $this->actingAs($this->staff('content-manager'))
+            ->post('/admin/products', ['name' => 'X', 'product_category_id' => $cat->id, 'availability_status' => 'enquire', 'image' => $productForm])
+            ->assertInvalid(['image' => 'no temporary folder']);
     }
 
     public function test_media_library_warns_about_low_upload_limits(): void
