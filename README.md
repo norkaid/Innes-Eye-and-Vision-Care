@@ -349,6 +349,18 @@ Texts are short and never contain medical details. Staff choose whether to notif
 
 > **On a PC nothing is delivered by default.** With `SMS_DRIVER=log` and `MAIL_MAILER=log`, messages are only written to `storage/logs/laravel.log`. Follow the steps below to reach real phones and inboxes.
 
+### Quick way: the guided set-up
+
+Once you have your SMS API key and an email app password (steps 1–4 below explain how to get them), run:
+
+```bash
+php artisan innes:setup-notifications
+```
+
+It asks which SMS provider and mailbox you use, takes the keys (typed hidden), writes them into `.env` for you, switches customer messages on in Settings and sends a test SMS and email. Then restart the site. The manual steps below do the same thing by hand.
+
+> **Arkesel note:** for SMS you need Arkesel's **SMS** section (sender ID and SMS API key). The *Sending → Email addresses* page in Arkesel is for their email campaigns and is **not needed**: the site sends email through Gmail or Hostinger.
+
 ### Step 1: Open an account with an SMS provider
 
 The site works with these providers. **Arkesel** or **Hubtel** are the usual choice in Ghana.
@@ -557,7 +569,7 @@ Code style:
 vendor/bin/pint --test
 ```
 
-The suite (152 tests) covers: public pages and draft visibility, search and filters, booking validation (past dates, closed days, lead time, slot grid, branch/service combinations, spam, rate limits), pending status, status transitions and history, capacity conflicts, the role matrix, guest and customer exclusion from admin, customer ownership, cut-off rules, CRUD for services, products, branches, articles and team profiles, upload validation and image processing, media library, website images, content transfer (including tampered files), the database viewer, the shop and Paystack payments (cart, checkout, server-side verification, tampered amounts, abandoned payments, stock, signed order links, webhook signatures, appointment deposits, order management and refunds), SMS and email notifications by customer choice, confirmed times never offered again, staff privilege escalation, CSRF, output escaping, no exposure of sensitive data and no committed secrets. GitHub Actions runs the suite on MySQL 8 for every push.
+The suite (154 tests) covers: public pages and draft visibility, search and filters, booking validation (past dates, closed days, lead time, slot grid, branch/service combinations, spam, rate limits), pending status, status transitions and history, capacity conflicts, the role matrix, guest and customer exclusion from admin, customer ownership, cut-off rules, CRUD for services, products, branches, articles and team profiles, upload validation and image processing, media library, website images, content transfer (including tampered files), the database viewer, the shop and Paystack payments (cart, checkout, server-side verification, tampered amounts, abandoned payments, stock, signed order links, webhook signatures, appointment deposits, order management and refunds), SMS and email notifications by customer choice, confirmed times never offered again, staff privilege escalation, CSRF, output escaping, no exposure of sensitive data and no committed secrets. GitHub Actions runs the suite on MySQL 8 for every push.
 
 ---
 
