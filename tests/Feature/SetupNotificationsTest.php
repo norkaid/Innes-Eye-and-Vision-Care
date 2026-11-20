@@ -42,7 +42,11 @@ class SetupNotificationsTest extends TestCase
                 ->expectsChoice('Which mailbox sends the emails?', 'gmail', ['gmail', 'hostinger', 'skip (keep current email settings)'])
                 ->expectsQuestion('Email address that sends the messages', 'inneseyecare@gmail.com')
                 ->expectsQuestion('16-character app password (typing is hidden)', 'abcd efgh ijkl mnop')
+                ->expectsQuestion('Send a test SMS to which phone number? (leave empty to skip)', 'hello welcome')
+                ->expectsOutputToContain('Type only a phone number')
                 ->expectsQuestion('Send a test SMS to which phone number? (leave empty to skip)', '024 123 4567')
+                ->expectsQuestion('Send a test email to which address? (leave empty to skip)', 'not-an-address')
+                ->expectsOutputToContain('Type only an email address')
                 ->expectsQuestion('Send a test email to which address? (leave empty to skip)', '')
                 ->expectsOutputToContain('Test SMS sent')
                 ->assertSuccessful();

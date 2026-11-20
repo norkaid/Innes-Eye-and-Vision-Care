@@ -100,8 +100,12 @@ class Doctor extends Command
         $this->newLine();
         $this->info('Customer messages');
         $driver = $sms->driver() ?: 'off';
-        if ($sms->delivers()) {
-            $ok("SMS provider: {$driver}.");
+        $senderId = (string) config('services.sms.sender_id');
+        if ($sms->delivers() && ! preg_match('/^[A-Za-z0-9]{1,11}$/', $senderId)) {
+            $problems++;
+            $bad('SMS sender ID "'.$senderId.'" is not valid.', 'Use 1-11 letters or numbers with no spaces, exactly as approved in Arkesel, e.g. SMS_SENDER_ID=InnesEye');
+        } elseif ($sms->delivers()) {
+            $ok("SMS provider: {$driver}, sender ID {$senderId}.");
         } else {
             $problems++;
             $bad("SMS: {$driver} – texts are ".($driver === 'log' ? 'only written to storage/logs/laravel.log' : 'not sent').'.', 'Set SMS_DRIVER=arkesel (or hubtel/twilio) and its key in .env – see README "SMS and email notifications".');

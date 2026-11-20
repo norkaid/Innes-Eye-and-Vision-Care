@@ -162,4 +162,13 @@ class NotificationsAndSlotsTest extends TestCase
         config(['services.paystack.secret_key' => 'sk_test_x']);
         $this->artisan('innes:doctor')->expectsOutputToContain('Secret key found (TEST mode')->assertSuccessful();
     }
+
+    public function test_doctor_flags_sender_id_with_spaces(): void
+    {
+        config(['services.sms.driver' => 'arkesel', 'services.sms.arkesel_key' => 'k', 'services.sms.sender_id' => 'Innes Eye and Vision Care Centre']);
+        $this->artisan('innes:doctor')->expectsOutputToContain('is not valid')->assertSuccessful();
+
+        config(['services.sms.sender_id' => 'InnesEye']);
+        $this->artisan('innes:doctor')->expectsOutputToContain('sender ID InnesEye')->assertSuccessful();
+    }
 }

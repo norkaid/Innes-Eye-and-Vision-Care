@@ -51,7 +51,13 @@ class SetupNotifications extends Command
             if ($mail === 'gmail') {
                 $this->line('  Gmail needs an APP PASSWORD (Google Account > Security > 2-Step Verification on > App passwords), not your normal password.');
             }
-            $address = $this->askRequired('Email address that sends the messages');
+            do {
+                $address = $this->askRequired('Email address that sends the messages');
+                $validAddress = filter_var($address, FILTER_VALIDATE_EMAIL) !== false;
+                if (! $validAddress) {
+                    $this->warn('  Type only the email address, e.g. name@gmail.com.');
+                }
+            } while (! $validAddress);
             $values += [
                 'MAIL_MAILER' => 'smtp',
                 'MAIL_SCHEME' => 'smtps',
@@ -85,7 +91,7 @@ class SetupNotifications extends Command
         $this->newLine();
         $this->info('Step 3 of 3: Test');
         $this->reloadConfig($values);
-        if (isset($values['SMS_DRIVER']) && ($phone = $this->ask('Send a test SMS to which phone number? (leave empty to skip)'))) {
+        if (isset($values['SMS_DRIVER']) && ($phone = $this->askValid('Send a test SMS to which phone number? (leave empty to skip)', fn ($v) => SmsService::normalise($v) !== null, 'Type only a phone number, e.g. 024 123 4567.'))) {
             try {
                 app(SmsService::class)->send($phone, $settings->get('business_name').': test message. SMS notifications are working.');
                 $this->info('  Test SMS sent. Check your phone. (If it does not arrive, the sender ID may still be awaiting approval or the account may have no credit.)');
@@ -93,7 +99,7 @@ class SetupNotifications extends Command
                 $this->error('  SMS failed: '.$e->getMessage());
             }
         }
-        if (isset($values['MAIL_MAILER']) && ($email = $this->ask('Send a test email to which address? (leave empty to skip)'))) {
+        if (isset($values['MAIL_MAILER']) && ($email = $this->askValid('Send a test email to which address? (leave empty to skip)', fn ($v) => filter_var($v, FILTER_VALIDATE_EMAIL) !== false, 'Type only an email address, e.g. name@gmail.com (not a password).'))) {
             try {
                 Notification::route('mail', $email)->notifyNow(new TestNotification);
                 $this->info('  Test email sent. Check the inbox and spam folder.');
@@ -154,13 +160,25 @@ class SetupNotifications extends Command
         app()->forgetInstance('mailer');
     }
 
+    /** Asks until the answer is valid or empty (empty = skip). */
+    private function askValid(string $question, \Closure $valid, string $hint): ?string
+    {
+        while (true) {
+            $answer = trim((string) $this->ask($question));
+            if ($answer === '' || $valid($answer)) {
+                return $answer === '' ? null : $answer;
+            }
+            $this->warn('  '.$hint);
+        }
+    }
+
     private function senderId(): string
     {
         do {
             $id = (string) $this->ask('Approved sender ID (max 11 letters/numbers, e.g. InnesEye)', 'InnesEye');
             $valid = (bool) preg_match('/^[A-Za-z0-9]{1,11}$/', $id);
             if (! $valid) {
-                $this->warn('  Use 1–11 letters or numbers, no spaces.');
+                $this->warn('  Use 1-11 letters or numbers, no spaces (e.g. InnesEye) - exactly as approved in Arkesel.');
             }
         } while (! $valid);
 

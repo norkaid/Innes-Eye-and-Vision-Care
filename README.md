@@ -378,7 +378,7 @@ The site works with these providers. **Arkesel** or **Hubtel** are the usual cho
 
 The sender ID is the name customers see instead of a phone number, e.g. `InnesEye`.
 
-- Maximum **11 characters**, letters and numbers only, no spaces.
+- Maximum **11 characters**, letters and numbers only, **no spaces** (a value with spaces such as `Innes Eye and Vision Care Centre` makes the whole `.env` file invalid).
 - Request it in the provider's dashboard. In Ghana, approval can take one or more working days, and **texts may not be delivered until it is approved**.
 
 ### Step 3: Add the settings to `.env`
