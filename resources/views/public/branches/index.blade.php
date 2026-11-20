@@ -1,4 +1,4 @@
-<x-layouts.public title="Branches" description="Find a {{ $site->get('business_name') }} branch: addresses, opening hours, directions and services.">
+<x-layouts.public title="Branches" :description="'Find a '.($site->get('business_name')).' branch: addresses, opening hours, directions and services.'">
     <x-page-header title="Our branches" eyebrow="Find us" intro="Opening hours, contact details, directions and the services available at each branch." />
     <section class="container-page py-14">
         @if ($branches->isNotEmpty())

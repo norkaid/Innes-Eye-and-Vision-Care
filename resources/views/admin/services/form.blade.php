@@ -9,7 +9,8 @@
             <x-form.textarea name="short_description" label="Short description" required rows="2" maxlength="300" :value="$service->short_description" hint="Shown on service cards. Must be approved by the centre." />
             <x-form.textarea name="description" label="What the service involves" rows="8" :value="$service->description" />
             <x-form.textarea name="preparation" label="Preparation information (supplied by the clinic)" rows="4" :value="$service->preparation" />
-            <x-admin.image-field :current="$service->image_path" />
+            <x-form.input name="booking_fee" type="number" step="0.01" min="0" label="Booking fee paid online (GH₵)" :value="$service->booking_fee" hint="Leave blank for no online payment. When set, customers who request this service are asked to pay it with Paystack. Paying does not confirm the appointment." />
+            <x-admin.image-field :current="$service->image_path" folder="services" />
         </div>
         <div class="space-y-6">
             <div class="card space-y-4 p-6">

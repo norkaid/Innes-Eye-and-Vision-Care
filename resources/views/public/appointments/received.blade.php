@@ -9,6 +9,13 @@
                 <p class="mt-2 text-sm">Please keep this reference if you contact us about your request.</p>
             </div>
         @endif
+        @if ($payment)
+            <div class="card mx-auto mt-8 max-w-md space-y-3 p-6">
+                <h2 class="text-lg font-semibold">Booking fee: {{ \App\Services\ShopService::money($payment['amount']) }}</h2>
+                <p class="text-sm">Pay securely now by card or mobile money with Paystack.@if ($acknowledged) You can also pay later using the link in your email.@endif</p>
+                <a href="{{ $payment['url'] }}" class="btn-primary w-full"><x-icon name="check" class="h-4 w-4" /> Pay booking fee</a>
+            </div>
+        @endif
         <x-alert type="warning" title="Your appointment is not yet confirmed" class="mt-8 text-left">
             Our team will review your request and contact you to confirm a time or suggest an alternative.
         </x-alert>

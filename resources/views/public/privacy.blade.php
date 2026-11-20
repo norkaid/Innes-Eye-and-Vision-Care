@@ -1,4 +1,4 @@
-<x-layouts.public title="Privacy notice" description="How {{ $site->get('business_name') }} handles personal information submitted through this website.">
+<x-layouts.public title="Privacy notice" :description="'How '.($site->get('business_name')).' handles personal information submitted through this website.'">
     <x-page-header title="Privacy notice" eyebrow="Your information" />
     <section class="container-page max-w-3xl py-14">
         <x-alert type="warning" title="Draft for business and legal review">

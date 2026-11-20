@@ -8,6 +8,10 @@ return [
     */
     'features' => [
         'customer_accounts' => (bool) env('FEATURE_CUSTOMER_ACCOUNTS', true),
+        // Online shop for products marked "sell online". Also needs Paystack keys.
+        'shop' => (bool) env('FEATURE_SHOP', true),
+        // Online payment of a service's booking fee. Also needs Paystack keys.
+        'appointment_payments' => (bool) env('FEATURE_APPOINTMENT_PAYMENTS', true),
     ],
 
     /*
@@ -29,8 +33,25 @@ return [
 
     'uploads' => [
         'disk' => env('UPLOADS_DISK', 'public'),
-        'max_kb' => (int) env('UPLOAD_MAX_KB', 2048),
+        // Largest file accepted (phone photos are often 3–8 MB). Photos are then shrunk
+        // to max_dimension pixels on their longest side before being stored.
+        'max_kb' => (int) env('UPLOAD_MAX_KB', 10240),
+        'max_dimension' => (int) env('UPLOAD_MAX_DIMENSION', 2000),
         'mimes' => ['jpg', 'jpeg', 'png', 'webp'],
+    ],
+
+    /*
+    | Media library folders (Admin → Media library). Files are stored in
+    | storage/app/public/media/<folder>/ and served from /storage/media/<folder>/.
+    */
+    'media_folders' => [
+        'logo' => 'Logo & branding',
+        'products' => 'Glasses & products',
+        'services' => 'Services',
+        'branches' => 'Branches & premises',
+        'team' => 'Team & practitioners',
+        'articles' => 'Articles',
+        'general' => 'General',
     ],
 
     /*
@@ -48,12 +69,19 @@ return [
         'products.manage' => 'Manage products and categories',
         'branches.manage' => 'Manage branches and opening hours',
         'articles.manage' => 'Manage health articles',
+        'team.manage' => 'Manage team profiles on the About page',
         'staff.manage' => 'Manage staff accounts and roles',
         'settings.general' => 'Manage public business details',
         'settings.system' => 'Manage appointment rules and notification settings',
         'reports.view' => 'View reports',
         'reports.export' => 'Export report summaries',
         'audit.view' => 'View the administrative activity log',
+        'media.manage' => 'Upload, edit and delete media library images',
+        'database.view' => 'Browse database tables (read-only, sensitive columns hidden)',
+        'content.transfer' => 'Export website content to a file and import it on another copy of the site',
+        'orders.view' => 'View shop orders',
+        'orders.manage' => 'Update shop orders (prepare, hand over, cancel, record refunds)',
+        'payments.view' => 'View online payments',
     ],
 
     /*
@@ -75,6 +103,7 @@ return [
                 'dashboard.view', 'appointments.view', 'appointments.manage', 'customers.view', 'customers.manage',
                 'enquiries.view', 'enquiries.manage', 'services.manage', 'products.manage', 'branches.manage',
                 'articles.manage', 'settings.general', 'reports.view', 'reports.export', 'audit.view',
+                'media.manage', 'team.manage', 'orders.view', 'orders.manage', 'payments.view',
             ],
         ],
         'receptionist' => [
@@ -83,7 +112,7 @@ return [
             'description' => 'Appointment requests and customer enquiries, with the customer details needed for those tasks.',
             'permissions' => [
                 'dashboard.view', 'appointments.view', 'appointments.manage', 'customers.view',
-                'enquiries.view', 'enquiries.manage',
+                'enquiries.view', 'enquiries.manage', 'orders.view', 'orders.manage',
             ],
         ],
         'content-manager' => [
@@ -91,7 +120,7 @@ return [
             'rank' => 40,
             'description' => 'Website content: services, products and articles. No access to private appointment information.',
             'permissions' => [
-                'dashboard.view', 'services.manage', 'products.manage', 'articles.manage',
+                'dashboard.view', 'services.manage', 'products.manage', 'articles.manage', 'media.manage', 'team.manage',
             ],
         ],
     ],
@@ -101,6 +130,9 @@ return [
     */
     'settings_defaults' => [
         'business_name' => 'Innes Eye & Visioncare Centre',
+        'logo_path' => null,
+        'hero_image_path' => null,
+        'about_image_path' => null,
         'tagline' => 'Trusted eye care and stylish vision solutions',
         'contact_email' => null,
         'contact_phone' => null,
@@ -119,5 +151,9 @@ return [
         'cancellation_cutoff_hours' => 24,
         'notify_customer_emails' => true,
         'notify_staff_email' => null,
+        'shop_pickup_enabled' => true,
+        'shop_delivery_enabled' => false,
+        'shop_delivery_fee' => 0,
+        'shop_delivery_note' => null,
     ],
 ];

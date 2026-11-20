@@ -14,7 +14,12 @@
             </div>
             <div class="relative">
                 {{-- Placeholder artwork. Replace with an approved, licensed photograph of the clinic or an eye examination. --}}
-                <img src="{{ asset('images/hero-illustration.svg') }}" alt="Illustration of spectacles in front of an eye-test chart" class="w-full rounded-3xl shadow-xl" width="640" height="520" fetchpriority="high">
+                @php($heroImage = \App\Models\Media::where('path', $site->get('hero_image_path'))->first())
+                @if ($heroImage)
+                    <img src="{{ $heroImage->url() }}" alt="{{ $heroImage->alt_text ?? '' }}" class="aspect-[16/13] w-full rounded-3xl object-cover shadow-xl" width="640" height="520" fetchpriority="high">
+                @else
+                    <img src="{{ asset('images/hero-illustration.svg') }}" alt="Illustration of spectacles in front of an eye-test chart" class="w-full rounded-3xl shadow-xl" width="640" height="520" fetchpriority="high">
+                @endif
             </div>
         </div>
     </section>

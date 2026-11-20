@@ -51,7 +51,7 @@ php artisan key:generate
 nano .env
 ```
 
-Set at least these values in `.env` (`Ctrl+O` to save, `Ctrl+X` to exit):
+Set at least these values in `.env` (`Ctrl+O` to save, `Ctrl+X` to exit). The example file is set up for a PC (SQLite): **replace** the line `DB_CONNECTION=sqlite` with the MySQL lines below, and make sure each `DB_` setting appears only once without a `#` in front:
 
 ```
 APP_ENV=production
@@ -104,6 +104,17 @@ php artisan route:cache
 php artisan view:cache
 ```
 
+### Online payments (Paystack)
+
+Add the Paystack keys to `.env` (test keys while testing, live keys when the business is ready to take real money):
+
+```
+PAYSTACK_PUBLIC_KEY=pk_live_...
+PAYSTACK_SECRET_KEY=sk_live_...
+```
+
+In the Paystack dashboard (**Settings → API Keys & Webhooks**) set the **Webhook URL** to `https://example.com/paystack/webhook` and the **Callback URL** can be left empty (the site sends its own). Run `php artisan config:cache` after changing `.env`.
+
 ## 4. Point the domain at Laravel's `public` folder
 
 The website must be served from `innes/public`, never from the project root (that would expose `.env`).
@@ -144,6 +155,20 @@ When all content is verified, set `SHOW_DEMO_NOTICE=false` in `.env`, then run:
 php artisan config:cache
 ```
 
+## 5a. Move your content from your PC to the live site
+
+Everything you entered on your PC (business details, logo, pictures, branches, services, products and articles) can be copied to the live site. Staff and customer accounts, appointments and enquiries are never copied.
+
+1. **On your PC:** sign in as Super Admin → **Content transfer** → leave "Also include items that are still demo content" unticked → **Download export file**. You get `innes-content-<date>.json.gz`.
+2. **On the live site:** sign in as the Super Admin you created in step 3 → **Content transfer** → choose the file → tick the confirmation → **Import content**.
+3. Check the website. You can keep editing everything in the live admin as normal, or repeat the export/import later: items with the same web address are updated and nothing is deleted.
+
+If the file is bigger than the live server accepts for upload, copy it to the server (hPanel → File Manager, e.g. into `innes/storage/app/`) and run:
+
+```bash
+cd ~/domains/example.com/innes && php artisan innes:import-content storage/app/innes-content-<date>.json.gz
+```
+
 ## 6. Updating the site later
 
 After new code has been pushed to GitHub:
@@ -160,7 +185,7 @@ This puts the site into maintenance mode, pulls the code, installs packages, run
 - hPanel → **Files → Backups** gives automatic daily or weekly backups, depending on your plan. Check that they include the database.
 - Also export the database regularly: hPanel → **Databases → phpMyAdmin** → *Export*. Keep a copy off the server.
 - Keep a private copy of the production `.env`; it contains the `APP_KEY` needed to read encrypted sessions.
-- Uploaded images live in `innes/storage/app/public`; include this folder in your backups.
+- Uploaded images are stored in the database, so the database export above includes them.
 
 ## Troubleshooting
 
@@ -172,3 +197,9 @@ This puts the site into maintenance mode, pulls the code, installs packages, run
 | `composer` or `php` version errors | Choose PHP 8.3 in hPanel and use the matching CLI binary (see step 2). |
 | Redirect loop on HTTPS | Set `TRUSTED_PROXIES=*` in `.env`, then run `php artisan config:cache`. |
 | Styling missing | Make sure `public/build` exists in the repository and `APP_URL` matches the domain exactly (https, with or without www). |
+
+## Viewing the database and media on Hostinger
+
+- **Database:** hPanel → *Databases* → *phpMyAdmin* → *Enter phpMyAdmin* next to your database. Super Admins can also use the read-only **Database** page in the admin dashboard.
+- **Media:** upload the logo and photos in **Admin → Media library**, then choose the logo in **Admin → Settings → Logo**. Images are stored inside the MySQL database (tables `media` and `media_contents`), so a database backup includes them. Photos up to 10 MB are accepted and shrunk to 2000 px before saving. `public/.user.ini` raises PHP's upload limits; if **Admin → Media library** still shows a warning about upload limits, set `upload_max_filesize = 20M` and `post_max_size = 64M` in hPanel → *Advanced* → *PHP Configuration* → *PHP options*.
+

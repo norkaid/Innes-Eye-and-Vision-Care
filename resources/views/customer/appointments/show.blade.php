@@ -1,9 +1,15 @@
-<x-layouts.account title="Request {{ $appointment->reference_code }}">
+<x-layouts.account :title="'Request '.($appointment->reference_code)">
     <div class="card p-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 class="text-lg font-semibold">{{ $appointment->service->name }}</h2>
-            <x-status-badge :status="$appointment->status" />
+            <div class="flex flex-wrap gap-2"><x-status-badge :status="$appointment->status" />@if ($appointment->payment_status !== \App\Enums\PaymentStatus::NotRequired)<x-status-badge :status="$appointment->payment_status" />@endif</div>
         </div>
+        @if ($appointment->canBePaid())
+            <div class="mt-4 flex flex-wrap items-center gap-3 rounded-lg bg-sky/50 p-4">
+                <p class="text-sm">Booking fee due: <strong class="text-navy">{{ \App\Services\ShopService::money($appointment->amount_due) }}</strong></p>
+                <a href="{{ $appointment->paymentUrl() }}" class="btn-primary btn-sm"><x-icon name="card" class="h-4 w-4" /> Pay now</a>
+            </div>
+        @endif
         <dl class="mt-4 grid gap-4 text-sm sm:grid-cols-2">
             <div><dt class="font-semibold text-navy">Branch</dt><dd>{{ $appointment->branch->name }}</dd></div>
             <div><dt class="font-semibold text-navy">Requested time</dt><dd>{{ $appointment->requestedStart()->format('l j F Y, H:i') }}</dd></div>

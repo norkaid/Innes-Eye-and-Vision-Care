@@ -14,11 +14,11 @@ class Service extends Model
 {
     use HasFactory, HasSlug, SoftDeletes;
 
-    protected $fillable = ['name', 'slug', 'short_description', 'description', 'preparation', 'image_path', 'is_published', 'display_order'];
+    protected $fillable = ['name', 'slug', 'short_description', 'description', 'preparation', 'booking_fee', 'image_path', 'is_published', 'display_order'];
 
     protected function casts(): array
     {
-        return ['is_published' => 'boolean', 'display_order' => 'integer'];
+        return ['is_published' => 'boolean', 'display_order' => 'integer', 'booking_fee' => 'decimal:2'];
     }
 
     public function branches(): BelongsToMany

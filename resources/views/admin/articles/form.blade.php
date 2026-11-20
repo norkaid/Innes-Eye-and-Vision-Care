@@ -12,7 +12,7 @@
             <x-form.textarea name="excerpt" label="Summary" rows="2" maxlength="400" :value="$article->excerpt" />
             <x-form.textarea name="body" label="Article body" required rows="18" :value="$article->body" class="font-mono"
                 hint="Written in Markdown: ## Heading, **bold**, - bullet list, [link](https://…). Raw HTML is removed for safety." />
-            <x-admin.image-field :current="$article->featured_image_path" label="Featured image" />
+            <x-admin.image-field :current="$article->featured_image_path" label="Featured image" folder="articles" />
         </div>
         <div class="space-y-6">
             <div class="card space-y-4 p-6">

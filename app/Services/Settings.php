@@ -24,6 +24,8 @@ class Settings
         'instagram_url', 'response_time_note', 'about_intro', 'mission', 'vision', 'values',
     ];
 
+    public const SHOP_KEYS = ['shop_pickup_enabled', 'shop_delivery_enabled', 'shop_delivery_fee', 'shop_delivery_note'];
+
     /** @var array<string,mixed>|null */
     private ?array $values = null;
 

@@ -14,7 +14,9 @@ Browser ──► routes/web.php ──► middleware (auth, staff, customer, ca
 
 - **`app/Services/AvailabilityService`** calculates bookable slots from branch hours plus the business settings (lead time, window, slot length, capacity) and existing *confirmed* appointments. The same code drives the booking form's time buttons (JSON endpoint), server-side validation and staff confirmation checks, so the UI never offers a time the server would reject.
 - **`AppointmentService`** handles every status change: the allowed transitions defined in `App\Enums\AppointmentStatus`, a DB transaction with `lockForUpdate` on the branch row (so concurrent confirmations are serialised before the capacity check), history rows, audit log and notifications.
-- **`EnquiryService`**, **`NotificationService`** (single place to add SMS later; records sent/failed/skipped and never claims a send that didn't happen), **`Settings`** (typed key/value settings with defaults in `config/innes.php`), **`AuditLogger`** (strips sensitive keys), **`ImageUploader`**.
+- **`EnquiryService`**, **`NotificationService`** (single place to add SMS later; records sent/failed/skipped and never claims a send that didn't happen), **`Settings`** (typed key/value settings with defaults in `config/innes.php`), **`AuditLogger`** (strips sensitive keys).
+- **`ImageUploader`** + **`ImageOptimizer`**: every uploaded picture is validated (type, size, pixel size read from the file path rather than `realpath()`, which fails on some Windows set-ups), turned upright using EXIF, shrunk to 2000 px and re-compressed, then stored **in the database** (`media` for details, `media_contents` for the bytes, kept apart so lists never load image data). `MediaFileController` serves them at `/media/<folder>/<random>.<ext>` with immutable caching. Keeping images in the database means one backup holds everything and no writable public folder is needed. A picture in use (product, service, branch, article, team profile, logo, website images) cannot be deleted.
+- **`ContentTransfer`**: exports website content (settings, media, branches with hours and services, services, categories, products, articles, team profiles) to one gzip JSON file and imports it on another installation in a single transaction, matching items by slug and never deleting. Imported pictures must decode as real JPEG/PNG/WebP and image paths are restricted to the media library. Accounts, appointments, enquiries and logs are never exported.
 
 ## Authorisation
 
@@ -33,10 +35,32 @@ users ─< appointments >─ branches ─< branch_opening_hours
 appointments ─< appointment_status_histories
 product_categories ─< products ─< enquiries ─< enquiry_notes
 article_categories ─< health_articles >─ users (author)
+media ─ media_contents (1:1, image bytes)
+orders ─< order_items >─ products        orders >─ branches (pickup), users (customer)
+payments >─ payable (orders | appointments)
+team_members
 business_settings, audit_logs, notification_deliveries
+
+Picture columns (products.image_path, services.image_path, branches.image_path,
+health_articles.featured_image_path, team_members.image_path, and the logo_path /
+hero_image_path / about_image_path settings) hold a media path such as
+media/products/<random>.jpg.
 ```
 
 Foreign keys use `restrictOnDelete` where history must be kept (an appointment's branch and service), and `nullOnDelete` / `cascadeOnDelete` elsewhere. Services, products, branches, articles and users use soft deletes ("archive"). Indexes cover status, dates, reference codes, slugs and filter columns. Status columns are strings validated by PHP enums, which keeps migrations portable.
+
+## Shop and payments
+
+- **Flow:** cart (product ids and quantities in the session) → checkout (`CheckoutRequest`) → an `Order` with items is created in a transaction with the product rows locked, using **database prices only** → `PaymentService::start()` creates a `Payment` and calls Paystack's *initialize* endpoint → the customer pays on Paystack's hosted page → Paystack redirects to `/payments/callback` and also posts to `/paystack/webhook`.
+- **Verification:** `PaymentService::confirm()` always calls Paystack's *verify* endpoint with the secret key and only marks the payment successful when the status is `success` **and** the amount, currency and reference match the stored payment. It locks the payment row, so the redirect and the webhook arriving together cannot apply a payment twice. Webhooks must carry a valid `x-paystack-signature` (HMAC SHA-512 of the body) and are exempt from CSRF only for that reason.
+- **Payables:** `Order` and `Appointment` implement `App\Contracts\Payable` (amount due from the database, `markPaid()`, return URL). Paying an order moves it to *Paid* and reduces stock (never below zero; a shortfall sets `stock_issue` for staff). Paying a booking fee sets the appointment's `payment_status` to *paid* but **never** confirms the appointment.
+- **Links without accounts:** guests reach their order page and the booking-fee page through **signed URLs**, so references cannot be used to view other people's orders.
+- **Data kept:** `payments` stores reference, amount (pesewas), status, channel and Paystack's transaction id: no card data. Refunds are made in the Paystack dashboard and recorded in the admin.
+- **Switches:** the shop and payment buttons only appear when `PAYSTACK_SECRET_KEY` is set and `FEATURE_SHOP` / `FEATURE_APPOINTMENT_PAYMENTS` are on.
+
+## Local versus live database
+
+The code runs on SQLite (one file, used on a PC: nothing to install) and MySQL (the live server). Migrations avoid database-specific features except one: on MySQL the image column is widened to `MEDIUMBLOB`. Tests run on both. The local database file is never committed, because it can contain customer details; **Content transfer** moves the website content between the two.
 
 ## Privacy choices
 
@@ -44,7 +68,8 @@ Foreign keys use `restrictOnDelete` where history must be kept (an appointment's
 - Emails contain minimal information; staff alerts include only a reference and a link.
 - Reference codes use 8 random characters from a 31-character alphabet. The confirmation page reads the reference from the session only, never from the URL.
 - Report exports contain aggregates only. The audit log never stores passwords, notes or messages.
-- Security headers are set and authenticated pages are sent with `Cache-Control: no-store`. HTTPS is forced in production, sessions are encrypted, and login, booking, contact, registration and password reset are rate-limited. Public forms also have a honeypot and a minimum fill time.
+- The **Database** page (Super Admin only) is read-only, hides password hashes, tokens and session tables, and records each table viewed in the activity log.
+- Security headers are set and authenticated pages are sent with `Cache-Control: no-store` (public images excepted). HTTPS is forced in production, sessions are encrypted, and login, booking, contact, registration and password reset are rate-limited. Public forms also have a honeypot and a minimum fill time.
 
 ## Why no Livewire / extra packages
 

@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Enums\AppointmentStatus;
+use App\Enums\PaymentStatus;
 use App\Models\Appointment;
 use App\Models\AppointmentStatusHistory;
 use App\Models\Branch;
+use App\Models\Service;
 use App\Models\User;
 use App\Notifications\AppointmentRequestReceived;
 use App\Notifications\AppointmentStatusChanged;
@@ -41,6 +43,14 @@ class AppointmentService
             $appointment->status_updated_at = now();
             if ($user && $user->isCustomer()) {
                 $appointment->user_id = $user->id;
+            }
+            // A booking fee applies only when the service has one and online payment is set up.
+            $fee = (float) Service::whereKey($appointment->service_id)->value('booking_fee');
+            if ($fee > 0 && app(ShopService::class)->appointmentPaymentsEnabled()) {
+                $appointment->payment_status = PaymentStatus::Unpaid;
+                $appointment->amount_due = $fee;
+            } else {
+                $appointment->payment_status = PaymentStatus::NotRequired;
             }
             $appointment->save();
 

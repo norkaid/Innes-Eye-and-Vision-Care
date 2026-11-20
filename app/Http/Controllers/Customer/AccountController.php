@@ -58,4 +58,11 @@ class AccountController extends Controller
 
         return view('customer.enquiries', compact('enquiries'));
     }
+
+    public function orders(Request $request)
+    {
+        $orders = $request->user()->orders()->with('items')->latest()->paginate(10);
+
+        return view('customer.orders', compact('orders'));
+    }
 }

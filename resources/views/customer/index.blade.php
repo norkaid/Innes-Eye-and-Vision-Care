@@ -1,4 +1,4 @@
-<x-layouts.account title="Welcome, {{ $user->first_name }}">
+<x-layouts.account :title="'Welcome, '.($user->first_name)">
     <div class="grid gap-6 md:grid-cols-2">
         <div class="card p-6">
             <h2 class="text-lg font-semibold">Need an appointment?</h2>

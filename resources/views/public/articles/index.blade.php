@@ -1,4 +1,4 @@
-<x-layouts.public title="Eye-health resources" description="Eye-care tips and information from {{ $site->get('business_name') }}.">
+<x-layouts.public title="Eye-health resources" :description="'Eye-care tips and information from '.($site->get('business_name')).'.'">
     <x-page-header title="Eye-health resources" eyebrow="Learn" intro="Practical information to help you look after your eyes. This content is general guidance and is not a substitute for a professional examination or diagnosis." />
     <section class="container-page py-12">
         @if ($categories->isNotEmpty())

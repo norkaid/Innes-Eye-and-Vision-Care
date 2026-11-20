@@ -72,7 +72,8 @@ class SecurityTest extends TestCase
 
         $example = file_get_contents($root.'/.env.example');
         $this->assertMatchesRegularExpression('/^APP_KEY=$/m', $example);
-        $this->assertMatchesRegularExpression('/^DB_PASSWORD=$/m', $example);
+        $this->assertMatchesRegularExpression('/^(# )?DB_PASSWORD=$/m', $example);
+        $this->assertDoesNotMatchRegularExpression('/^(# )?DB_PASSWORD=\S/m', $example);
         $this->assertMatchesRegularExpression('/^INITIAL_ADMIN_PASSWORD=$/m', $example);
 
         // Tracked files must not contain private keys or real-looking API tokens.

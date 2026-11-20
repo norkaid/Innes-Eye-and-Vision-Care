@@ -26,6 +26,84 @@
             </form>
         @endcan
 
+        @can('settings.general')
+            @php
+                $logos = \App\Models\Media::where('folder', 'logo')->latest()->limit(30)->get();
+            @endphp
+            <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data" class="card space-y-5 p-6" novalidate>
+                @csrf @method('PUT')
+                <input type="hidden" name="section" value="logo">
+                <h2 class="text-lg font-semibold">Logo</h2>
+                <p class="text-sm">Shown in the website header and footer and in the admin sidebar. A PNG with a transparent background, about 400 px wide, works best.</p>
+                <div class="flex flex-wrap items-center gap-6">
+                    <div class="rounded-lg border border-navy/10 bg-white p-4"><x-logo /></div>
+                    <div class="rounded-lg bg-navy p-4"><x-logo light /></div>
+                </div>
+                <div>
+                    <label for="f-logo" class="form-label">Upload a new logo</label>
+                    <input id="f-logo" type="file" name="logo" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                        class="block w-full text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-navy file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-navy-700">
+                    <p class="form-hint">JPG, PNG or WebP. It is saved in the “Logo &amp; branding” folder of the media library.</p>
+                    @error('logo')<p class="form-error"><x-icon name="alert" class="mt-0.5 h-4 w-4 shrink-0" /> {{ $message }}</p>@enderror
+                </div>
+                @if ($logos->isNotEmpty())
+                    <fieldset>
+                        <legend class="form-label">Or choose one from the “Logo &amp; branding” folder</legend>
+                        <div class="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                            @foreach ($logos as $m)
+                                <label class="cursor-pointer overflow-hidden rounded-lg border border-navy/15 p-2 has-[:checked]:border-teal has-[:checked]:ring-2 has-[:checked]:ring-teal" title="{{ $m->original_name }}">
+                                    <input type="radio" name="logo_media_id" value="{{ $m->id }}" class="sr-only" @checked(($values['logo_path'] ?? null) === $m->path)>
+                                    <img src="{{ $m->url() }}" alt="{{ $m->alt_text ?: $m->original_name }}" class="aspect-[3/2] w-full object-contain">
+                                </label>
+                            @endforeach
+                        </div>
+                    </fieldset>
+                @endif
+                @if ($values['logo_path'] ?? null)
+                    <x-form.checkbox name="remove_logo" label="Stop using the uploaded logo (show the standard text logo)" />
+                @endif
+                <button class="btn-primary" type="submit">Save logo</button>
+            </form>
+        @endcan
+
+        @can('settings.general')
+            @php($library = \App\Models\Media::latest()->limit(60)->get())
+            <form method="POST" action="{{ route('admin.settings.update') }}" class="card space-y-5 p-6" novalidate>
+                @csrf @method('PUT')
+                <input type="hidden" name="section" value="images">
+                <h2 class="text-lg font-semibold">Website images</h2>
+                <p class="text-sm">Choose pictures from the <a href="{{ route('admin.media.index') }}">media library</a> (upload them there first). The description (alt text) saved with each picture is used for screen readers.</p>
+                @if ($library->isEmpty())
+                    <p class="text-sm italic">The media library is empty. Upload pictures there first.</p>
+                @else
+                    <x-admin.media-picker name="hero_image" label="Home page main picture" :current="$values['hero_image_path'] ?? null" :items="$library" hint="Shown next to the headline at the top of the home page. A landscape photo works best." />
+                    <x-admin.media-picker name="about_image" label="About page picture" :current="$values['about_image_path'] ?? null" :items="$library" hint="Shown beside the company background, e.g. a photo of the clinic." />
+                    <button class="btn-primary" type="submit">Save website images</button>
+                @endif
+            </form>
+        @endcan
+
+        @can('settings.general')
+            @php($paystackReady = app(\App\Services\PaystackClient::class)->configured())
+            <form method="POST" action="{{ route('admin.settings.update') }}" class="card space-y-5 p-6" novalidate>
+                @csrf @method('PUT')
+                <input type="hidden" name="section" value="shop">
+                <h2 class="text-lg font-semibold">Shop &amp; online payments</h2>
+                @if (! $paystackReady)
+                    <x-alert type="warning" title="Paystack is not set up">The shop and booking-fee payments stay hidden until <code>PAYSTACK_SECRET_KEY</code> is added to the <code>.env</code> file.</x-alert>
+                @else
+                    <p class="text-sm">Online payments are handled by Paystack ({{ app(\App\Services\PaystackClient::class)->isTestMode() ? 'test mode – no real money' : 'live mode' }}). Products are sold online when "Sell online" is ticked on the product; appointment fees are set on each service.</p>
+                @endif
+                <div class="grid gap-5 sm:grid-cols-2">
+                    <x-form.checkbox name="shop_pickup_enabled" label="Customers can collect orders from a branch" :checked="filter_var($values['shop_pickup_enabled'], FILTER_VALIDATE_BOOL)" />
+                    <x-form.checkbox name="shop_delivery_enabled" label="Offer delivery" :checked="filter_var($values['shop_delivery_enabled'], FILTER_VALIDATE_BOOL)" />
+                    <x-form.input name="shop_delivery_fee" type="number" step="0.01" min="0" label="Delivery fee (GH₵)" :value="$values['shop_delivery_fee']" />
+                    <x-form.input name="shop_delivery_note" label="Delivery note shown at checkout" :value="$values['shop_delivery_note']" hint="e.g. areas covered and delivery times." />
+                </div>
+                <button class="btn-primary" type="submit">Save shop settings</button>
+            </form>
+        @endcan
+
         @can('settings.system')
             <form method="POST" action="{{ route('admin.settings.update') }}" class="card space-y-5 p-6" novalidate>
                 @csrf @method('PUT')

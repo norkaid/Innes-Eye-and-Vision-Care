@@ -8,7 +8,11 @@
         </h3>
         @if ($product->short_description)<p class="mt-2 line-clamp-2 flex-1 text-sm">{{ $product->short_description }}</p>@endif
         <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
-            <x-status-badge :status="$product->availability_status" size="sm" />
+            @if ($product->canBeBought())
+                <span class="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 text-xs font-semibold text-teal-700 ring-1 ring-inset ring-teal/40"><x-icon name="cart" class="h-3.5 w-3.5" /> Buy online</span>
+            @else
+                <x-status-badge :status="$product->availability_status" size="sm" />
+            @endif
             @if (! is_null($product->price))<span class="text-sm font-semibold text-navy">GH₵ {{ number_format($product->price, 2) }}</span>@endif
         </div>
     </div>

@@ -1,5 +1,8 @@
 @props(['branch'])
-<article class="card relative flex flex-col p-6">
+<article class="card relative flex flex-col overflow-hidden p-6">
+    @if ($branch->image_path)
+        <img src="{{ \App\Services\ImageUploader::url($branch->image_path) }}" alt="" loading="lazy" class="-mx-6 -mt-6 mb-5 aspect-[16/9] w-[calc(100%+3rem)] max-w-none object-cover" width="400" height="225">
+    @endif
     <div class="flex items-start gap-3">
         <span class="rounded-full bg-sky p-2.5 text-teal-700"><x-icon name="map-pin" /></span>
         <div>

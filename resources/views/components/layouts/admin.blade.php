@@ -8,6 +8,8 @@
         'Front desk' => [
             ['admin.appointments.index', 'Appointments', 'calendar', 'appointments.view', 'admin.appointments.*'],
             ['admin.enquiries.index', 'Enquiries', 'inbox', 'enquiries.view', 'admin.enquiries.*'],
+            ['admin.orders.index', 'Orders', 'cart', 'orders.view', 'admin.orders.*'],
+            ['admin.payments.index', 'Payments', 'card', 'payments.view', 'admin.payments.*'],
             ['admin.customers.index', 'Customers', 'users', 'customers.view', 'admin.customers.*'],
         ],
         'Website content' => [
@@ -16,12 +18,16 @@
             ['admin.categories.index', 'Product categories', 'tag', 'products.manage', 'admin.categories.*'],
             ['admin.branches.index', 'Branches', 'building', 'branches.manage', 'admin.branches.*'],
             ['admin.articles.index', 'Health articles', 'book', 'articles.manage', 'admin.articles.*'],
+            ['admin.team.index', 'Team profiles', 'user', 'team.manage', 'admin.team.*'],
+            ['admin.media.index', 'Media library', 'image', 'media.manage', 'admin.media.*'],
         ],
         'Administration' => [
             ['admin.reports.index', 'Reports', 'chart', 'reports.view', 'admin.reports.*'],
             ['admin.staff.index', 'Staff & roles', 'shield', 'staff.manage', 'admin.staff.*'],
             ['admin.settings.edit', 'Settings', 'cog', 'settings.access', 'admin.settings.*'],
             ['admin.activity', 'Activity log', 'activity', 'audit.view', 'admin.activity'],
+            ['admin.database.index', 'Database', 'database', 'database.view', 'admin.database.*'],
+            ['admin.content-transfer.index', 'Content transfer', 'external', 'content.transfer', 'admin.content-transfer.*'],
         ],
     ];
 @endphp

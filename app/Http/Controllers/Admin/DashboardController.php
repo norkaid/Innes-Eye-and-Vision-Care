@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\AppointmentStatus;
 use App\Enums\EnquiryStatus;
+use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\AuditLog;
 use App\Models\Enquiry;
+use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Service;
 use Illuminate\Http\Request;
@@ -32,6 +35,12 @@ class DashboardController extends Controller
         if ($user->can('enquiries.view')) {
             $data['stats']['new_enquiries'] = Enquiry::where('status', EnquiryStatus::New->value)->count();
             $data['recentEnquiries'] = Enquiry::latest()->limit(5)->get();
+        }
+        if ($user->can('orders.view')) {
+            $data['stats']['orders_to_prepare'] = Order::whereIn('status', [OrderStatus::Paid->value, OrderStatus::Processing->value])->count();
+        }
+        if ($user->can('payments.view')) {
+            $data['stats']['paid_this_month'] = Payment::where('status', Payment::SUCCESS)->where('paid_at', '>=', now()->startOfMonth())->sum('amount_minor') / 100;
         }
         if ($user->can('services.manage')) {
             $data['stats']['services'] = Service::published()->count();
