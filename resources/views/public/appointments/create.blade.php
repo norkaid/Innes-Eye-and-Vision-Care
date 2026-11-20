@@ -77,8 +77,9 @@
                 <fieldset class="space-y-3">
                     <legend class="text-lg font-semibold text-navy">4. How should we contact you?</legend>
                     <p class="text-sm">We send your confirmation and any changes to your appointment this way.</p>
-                    <x-form.checkbox name="notify_email" label="Email" :checked="true" />
-                    <x-form.checkbox name="notify_sms" label="SMS (text message) to my phone number" :checked="true" />
+                    <x-form.checkbox name="notify_email" label="Email" :checked="$user ? (bool) $user->notify_email : true" />
+                    <x-form.checkbox name="notify_sms" label="SMS (text message) to my phone number" :checked="$user ? (bool) $user->notify_sms : true" />
+                    @if ($user)<p class="text-sm">Updates also appear on your account's <a href="{{ route('account.notifications') }}">Notifications</a> page.</p>@endif
                 </fieldset>
 
                 @if ($depositsOn)

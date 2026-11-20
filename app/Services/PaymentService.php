@@ -143,7 +143,8 @@ class PaymentService
     {
         $payable = $payment->payable;
         if ($payable instanceof Order) {
-            $this->notifications->toCustomer($payable->customer_email, new OrderPaid($payable), $payable);
+            app(OrderNotifier::class)->wantsEmail($payable) && $this->notifications->toCustomer($payable->customer_email, new OrderPaid($payable), $payable);
+            app(OrderNotifier::class)->paid($payable);
             $this->notifications->toStaff(new StaffNewOrder($payable), $payable);
         } elseif ($payable instanceof Appointment) {
             app(AppointmentNotifier::class)->depositPaid($payable, $payment);

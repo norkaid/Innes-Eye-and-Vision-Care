@@ -57,6 +57,7 @@
                         @csrf @method('PATCH')
                         <h2 class="font-semibold">Update order</h2>
                         <x-form.select name="status" label="New status" required :options="collect($next)->mapWithKeys(fn ($s) => [$s->value => $s->label()])->all()" />
+                        <x-form.checkbox name="notify" label="Notify the customer (email, SMS and their account)" :checked="true" />
                         @if ($order->payment_status === \App\Enums\PaymentStatus::Paid)<p class="text-xs">Cancelling a paid order returns its items to stock. Refund the customer in the Paystack dashboard.</p>@endif
                         <button class="btn-primary" type="submit">Save</button>
                     </form>

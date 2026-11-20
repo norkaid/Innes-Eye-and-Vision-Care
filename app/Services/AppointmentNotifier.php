@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use App\Models\Payment;
+use App\Models\User;
+use App\Notifications\AccountMessage;
 use App\Notifications\AppointmentPaymentReceived;
 use App\Notifications\AppointmentRequestReceived;
 use App\Notifications\AppointmentStatusChanged;
@@ -22,6 +24,8 @@ class AppointmentNotifier
     /** @return array{email: bool, sms: bool} */
     public function requestReceived(Appointment $a): array
     {
+        $this->toAccount($a, 'Request received', "We received your appointment request {$a->reference_code}. It is not yet confirmed.".($a->canBePaid() ? ' Please pay the deposit to secure it.' : ''));
+
         return [
             'email' => $a->notify_email && $this->notifications->toCustomer($a->customer_email, new AppointmentRequestReceived($a), $a),
             // When a deposit is due, the text goes out once it is paid instead.
@@ -34,6 +38,8 @@ class AppointmentNotifier
     /** @return array{email: bool, sms: bool} */
     public function depositPaid(Appointment $a, Payment $payment): array
     {
+        $this->toAccount($a, 'Deposit received', 'We received your deposit of '.ShopService::money($payment->amount())." for request {$a->reference_code}. We will confirm your time shortly.");
+
         return [
             'email' => $a->notify_email && $this->notifications->toCustomer($a->customer_email, new AppointmentPaymentReceived($a, $payment), $a),
             'sms' => $a->notify_sms && $this->notifications->smsToCustomer($a->customer_phone, 'AppointmentDepositPaidSms',
@@ -46,6 +52,9 @@ class AppointmentNotifier
     {
         $a->loadMissing('branch');
         $text = $this->statusText($a);
+        if ($text !== null) {
+            $this->toAccount($a, $a->status->label(), $text);
+        }
 
         return [
             'email' => $a->notify_email && $this->notifications->toCustomer($a->customer_email, new AppointmentStatusChanged($a), $a),
@@ -66,6 +75,15 @@ class AppointmentNotifier
             AppointmentStatus::Cancelled => "{$name}: appointment {$a->reference_code} has been cancelled. Please contact us if you have questions.",
             default => null,
         };
+    }
+
+    /** Shows the update on the customer's Notifications page if the request belongs to an account. */
+    private function toAccount(Appointment $a, string $title, string $body): void
+    {
+        $user = $a->user_id ? User::find($a->user_id) : null;
+        if ($user && $user->isCustomer()) {
+            $user->notify(new AccountMessage($title, $body, route('account.appointments.show', $a)));
+        }
     }
 
     private function name(): string

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
 use App\Services\AuditLogger;
+use App\Services\OrderNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -68,6 +69,9 @@ class OrderController extends Controller
         });
         $order->refresh();
         $this->audit->log('order.status_changed', $order, ['from' => $old->value, 'to' => $order->status->value]);
+        if ($request->boolean('notify', true)) {
+            app(OrderNotifier::class)->statusChanged($order);
+        }
 
         $message = 'Order updated.';
         if ($order->status === OrderStatus::Cancelled && $order->payment_status === PaymentStatus::Paid) {

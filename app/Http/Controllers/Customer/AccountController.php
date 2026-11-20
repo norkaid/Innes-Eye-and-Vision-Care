@@ -34,8 +34,13 @@ class AccountController extends Controller
             'last_name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'string', 'email:rfc', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:30', 'regex:/^\+?[0-9\s\-()]{7,20}$/'],
+            'notify_email' => ['boolean'],
+            'notify_sms' => ['boolean'],
         ]);
-        $user->fill($data)->save();
+        $user->fill($data);
+        $user->notify_email = $request->boolean('notify_email');
+        $user->notify_sms = $request->boolean('notify_sms');
+        $user->save();
 
         return back()->with('success', 'Your details have been updated.');
     }
@@ -64,5 +69,15 @@ class AccountController extends Controller
         $orders = $request->user()->orders()->with('items')->latest()->paginate(10);
 
         return view('customer.orders', compact('orders'));
+    }
+
+    public function notifications(Request $request)
+    {
+        $user = $request->user();
+        $notifications = $user->notifications()->latest()->paginate(20);
+        $view = view('customer.notifications', compact('notifications'));
+        $user->unreadNotifications()->update(['read_at' => now()]); // seen now; still shown as new on this visit
+
+        return $view;
     }
 }

@@ -102,6 +102,7 @@ Route::middleware(['auth', 'customer.accounts', 'customer'])->prefix('account')-
 
     Route::get('/enquiries', [Customer\AccountController::class, 'enquiries'])->name('enquiries');
     Route::get('/orders', [Customer\AccountController::class, 'orders'])->name('orders');
+    Route::get('/notifications', [Customer\AccountController::class, 'notifications'])->name('notifications');
 });
 
 /*

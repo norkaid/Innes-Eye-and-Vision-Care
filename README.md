@@ -66,7 +66,7 @@ Every published product **with a price** can be added to the cart and paid for w
 
 ### Customer accounts (optional, `FEATURE_CUSTOMER_ACCOUNTS`)
 
-Register, sign in, reset password, edit profile, see own appointment requests (cancel, reschedule, pay the booking fee), own orders and own enquiries. Ownership is checked on the server.
+Register, sign in, reset password, edit profile and SMS/email preferences, see own appointment requests (cancel, reschedule, pay the deposit), own orders, own enquiries and a **Notifications** page with every update about their appointments and orders. Ownership is checked on the server.
 
 ### Admin dashboard `/admin`
 
@@ -337,12 +337,13 @@ Prescription lenses and contact lenses need a valid prescription: the checkout t
 
 ## SMS and email notifications
 
-Customers choose on the booking form whether they want updates by **SMS**, **email** or both. They receive a message when:
+Customers choose on the booking form whether they want updates by **SMS**, **email** or both. Customers with an account can set their preference once under **My account → Profile & password**, and **every update also appears on their account's Notifications page** (with a counter next to *My account*). That works straight away, with no SMS or email set-up. Messages are sent when:
 
 - their request is received (when no deposit is due),
 - their deposit is received,
 - their appointment is **confirmed** (date, time, branch and the balance to pay at the clinic),
-- a new time is proposed, or the request is declined or cancelled.
+- a new time is proposed, or the request is declined or cancelled,
+- a shop order is paid, ready for pickup, out for delivery, completed or cancelled (staff can untick *Notify the customer* when updating an order).
 
 Texts are short and never contain medical details. Staff choose whether to notify the customer each time they change a request (the *Notify the customer* box, ticked by default).
 
@@ -556,7 +557,7 @@ Code style:
 vendor/bin/pint --test
 ```
 
-The suite (147 tests) covers: public pages and draft visibility, search and filters, booking validation (past dates, closed days, lead time, slot grid, branch/service combinations, spam, rate limits), pending status, status transitions and history, capacity conflicts, the role matrix, guest and customer exclusion from admin, customer ownership, cut-off rules, CRUD for services, products, branches, articles and team profiles, upload validation and image processing, media library, website images, content transfer (including tampered files), the database viewer, the shop and Paystack payments (cart, checkout, server-side verification, tampered amounts, abandoned payments, stock, signed order links, webhook signatures, appointment deposits, order management and refunds), SMS and email notifications by customer choice, confirmed times never offered again, staff privilege escalation, CSRF, output escaping, no exposure of sensitive data and no committed secrets. GitHub Actions runs the suite on MySQL 8 for every push.
+The suite (152 tests) covers: public pages and draft visibility, search and filters, booking validation (past dates, closed days, lead time, slot grid, branch/service combinations, spam, rate limits), pending status, status transitions and history, capacity conflicts, the role matrix, guest and customer exclusion from admin, customer ownership, cut-off rules, CRUD for services, products, branches, articles and team profiles, upload validation and image processing, media library, website images, content transfer (including tampered files), the database viewer, the shop and Paystack payments (cart, checkout, server-side verification, tampered amounts, abandoned payments, stock, signed order links, webhook signatures, appointment deposits, order management and refunds), SMS and email notifications by customer choice, confirmed times never offered again, staff privilege escalation, CSRF, output escaping, no exposure of sensitive data and no committed secrets. GitHub Actions runs the suite on MySQL 8 for every push.
 
 ---
 

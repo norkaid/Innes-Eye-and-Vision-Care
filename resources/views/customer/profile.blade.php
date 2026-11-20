@@ -10,6 +10,12 @@
             <x-form.input name="email" type="email" label="Email address" required :value="$user->email" autocomplete="email" />
             <x-form.input name="phone" type="tel" label="Phone number" :value="$user->phone" autocomplete="tel" />
         </div>
+        <fieldset class="space-y-3">
+            <legend class="font-semibold text-navy">How should we contact you?</legend>
+            <p class="text-sm">Updates about your appointments and orders always appear on your <a href="{{ route('account.notifications') }}">Notifications</a> page. We can also send them:</p>
+            <x-form.checkbox name="notify_email" label="By email" :checked="(bool) $user->notify_email" />
+            <x-form.checkbox name="notify_sms" label="By SMS (text message) to my phone number" :checked="(bool) $user->notify_sms" />
+        </fieldset>
         <button class="btn-primary" type="submit">Save details</button>
     </form>
     <form method="POST" action="{{ route('account.password') }}" class="card space-y-5 p-6" novalidate>

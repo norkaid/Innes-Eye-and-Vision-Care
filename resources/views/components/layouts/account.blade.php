@@ -9,9 +9,9 @@
     <div class="container-page grid gap-8 py-10 lg:grid-cols-[220px_1fr]">
         <nav aria-label="Account">
             <ul class="flex flex-wrap gap-1 lg:flex-col">
-                @foreach ([['account.index', 'Overview', 'home'], ['account.appointments.index', 'Appointment requests', 'calendar'],  ['account.orders', 'My orders', 'cart'], ['account.enquiries', 'My enquiries', 'inbox'], ['account.profile', 'Profile & password', 'user']] as [$r, $label, $icon])
+                @foreach ([ ['account.index', 'Overview', 'home'], ['account.notifications', 'Notifications', 'bell'], ['account.appointments.index', 'Appointment requests', 'calendar'],  ['account.orders', 'My orders', 'cart'], ['account.enquiries', 'My enquiries', 'inbox'], ['account.profile', 'Profile & password', 'user']] as [$r, $label, $icon])
                     @php $active = request()->routeIs($r === 'account.appointments.index' ? 'account.appointments.*' : $r); @endphp
-                    <li><a href="{{ route($r) }}" @if ($active) aria-current="page" @endif class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold no-underline {{ $active ? 'bg-navy text-white' : 'text-navy hover:bg-sky' }}"><x-icon :name="$icon" class="h-4 w-4" /> {{ $label }}</a></li>
+                    <li><a href="{{ route($r) }}" @if ($active) aria-current="page" @endif class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold no-underline {{ $active ? 'bg-navy text-white' : 'text-navy hover:bg-sky' }}"><x-icon :name="$icon" class="h-4 w-4" /> {{ $label }}@if ($r === 'account.notifications' && ($unread = auth()->user()->unreadNotifications()->count()))<span class="ml-auto rounded-full bg-teal px-2 text-xs text-white">{{ $unread }}<span class="sr-only"> new</span></span>@endif</a></li>
                 @endforeach
                 <li>
                     <form method="POST" action="{{ route('logout') }}">@csrf<button class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-semibold text-navy hover:bg-sky"><x-icon name="logout" class="h-4 w-4" /> Sign out</button></form>

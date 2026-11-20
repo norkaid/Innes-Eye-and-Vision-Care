@@ -37,8 +37,12 @@
                 </a>
             @endif
             @auth
-                <a href="{{ auth()->user()->isStaff() ? route('admin.dashboard') : route('account.index') }}" class="btn-text text-sm">
+                @php
+                    $unreadCount = auth()->user()->isCustomer() ? auth()->user()->unreadNotifications()->count() : 0;
+                @endphp
+                <a href="{{ auth()->user()->isStaff() ? route('admin.dashboard') : ($unreadCount ? route('account.notifications') : route('account.index')) }}" class="btn-text text-sm">
                     <x-icon name="user" class="h-4 w-4" /> {{ auth()->user()->isStaff() ? 'Dashboard' : 'My account' }}
+                    @if ($unreadCount)<span class="rounded-full bg-teal px-1.5 text-xs font-bold text-white">{{ $unreadCount }}</span><span class="sr-only">new notifications</span>@endif
                 </a>
             @else
                 <a href="{{ route('login') }}" class="btn-text text-sm">Sign in</a>
