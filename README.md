@@ -450,7 +450,7 @@ The line under the form shows the current email and SMS method; it should no lon
 
 ### Step 7: Send a test
 
-Still in **Settings**, go to **Check customer notifications**, enter **your own** email address and phone number and click **Send test**. The message at the top of the page tells you exactly what happened:
+Still in **Settings**, go to **Check customer notifications**, enter **your own real** email address and phone number and click **Send test**. (Demo accounts such as `superadmin@innes.test` are not real mailboxes and can never receive email.) The message at the top of the page tells you exactly what happened:
 
 | Result | Meaning |
 |---|---|
@@ -524,7 +524,7 @@ php artisan innes:import-content storage/app/innes-content-<date>.json.gz
 | Picture upload fails | Open **Admin → Media library**: the red box names the setting to change. Usually `upload_max_filesize` / `post_max_size` in `php.ini` (find it with `php --ini`; with Herd use Herd → Settings → PHP), then restart `php artisan serve` |
 | `php -r ...` still shows `2M / 8M` | You edited a different `php.ini`. Run `php --ini` and edit the file named on "Loaded Configuration File" |
 | `The upload was too large` page | Too many or too large pictures in one go. Upload fewer at a time or raise `post_max_size` |
-| No cart / "Add to cart" button | `PAYSTACK_SECRET_KEY` is missing from `.env` (run `php artisan config:clear` after adding it), or the product has no price, is not ticked *Sell online*, is unpublished or out of stock |
+| No cart / "Add to cart" button, price says "(confirm in branch)" | Open the product in **Admin → Products → Edit**: the *Online shop* box lists exactly what is missing. Usually `PAYSTACK_SECRET_KEY` is not in `.env` (add it, run `php artisan config:clear`, restart the site) |
 | "The payment provider refused the request" | Wrong or mismatched Paystack keys (test and live keys mixed), or the currency is not enabled on the Paystack account |
 | Paid on Paystack but order still "Awaiting payment" | The customer closed the page before returning. Set the webhook URL (live site), or click **Check again** in Admin → Payments |
 | Customers don't receive SMS or email | Follow [SMS and email notifications](#sms-and-email-notifications) and use **Send test** in Admin → Settings: it shows the exact problem (still `log`, wrong key, no credit or sender ID not approved) |

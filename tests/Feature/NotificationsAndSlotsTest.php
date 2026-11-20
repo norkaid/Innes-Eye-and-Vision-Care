@@ -118,8 +118,13 @@ class NotificationsAndSlotsTest extends TestCase
         Product::factory()->create(['product_category_id' => $cat->id, 'slug' => 'priced', 'price' => 300, 'is_published' => true, 'availability_status' => 'available']);
         Product::factory()->create(['product_category_id' => $cat->id, 'slug' => 'no-price', 'price' => null, 'is_published' => true]);
 
-        $this->get('/products/priced')->assertSee('Add to cart')->assertDontSee('Enquire About This Product');
-        $this->get('/products/no-price')->assertDontSee('Add to cart')->assertSee('Enquire About This Product');
+        foreach ([false, true] as $delivery) {
+            app(Settings::class)->put(['shop_delivery_enabled' => $delivery]);
+            $this->get('/products/priced')->assertSee('Add to cart')->assertDontSee('Enquire About This Product')
+                ->assertDontSee('@if')->assertDontSee('@endif')->assertDontSee('@unless');
+        }
+        $this->get('/products/no-price')->assertDontSee('Add to cart')->assertSee('Enquire About This Product')
+            ->assertDontSee('@if')->assertDontSee('@endif');
     }
 
     public function test_settings_test_button_reports_honestly(): void
@@ -134,5 +139,18 @@ class NotificationsAndSlotsTest extends TestCase
             ->assertSessionHas('success', fn ($m) => str_contains($m, 'laravel.log only'));
 
         $this->actingAs($this->staff('administrator'))->post('/admin/settings/test-notification', ['test_email' => 'me@example.com'])->assertForbidden();
+    }
+
+    public function test_admin_sees_why_a_product_is_not_on_sale(): void
+    {
+        $cat = ProductCategory::factory()->create(['is_active' => true]);
+        $product = Product::factory()->create(['product_category_id' => $cat->id, 'price' => 344, 'is_published' => true]);
+        $admin = $this->staff('content-manager');
+
+        config(['services.paystack.secret_key' => null]);
+        $this->actingAs($admin)->get("/admin/products/{$product->id}/edit")->assertSee('Not on sale online yet')->assertSee('PAYSTACK_SECRET_KEY');
+
+        config(['services.paystack.secret_key' => 'sk_test_x']);
+        $this->actingAs($admin)->get("/admin/products/{$product->id}/edit")->assertSee('Customers can buy this product online');
     }
 }

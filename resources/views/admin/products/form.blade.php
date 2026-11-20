@@ -26,6 +26,16 @@
             </div>
             <div class="card space-y-4 p-6">
                 <h2 class="font-semibold">Online shop</h2>
+                @if ($product->exists)
+                    @php($blockers = $product->purchaseBlockers())
+                    @if ($blockers)
+                        <x-alert type="warning" title="Not on sale online yet">
+                            <ul class="list-disc pl-5">@foreach ($blockers as $reason)<li>{{ $reason }}</li>@endforeach</ul>
+                        </x-alert>
+                    @else
+                        <x-alert type="success">Customers can buy this product online.</x-alert>
+                    @endif
+                @endif
                 <x-form.checkbox name="is_purchasable" label="Sell online (customers add to cart and pay)" :checked="(bool) $product->is_purchasable" hint="On by default: every published product with a price can be bought online. Untick only for items customers must ask about first." />
                 <x-form.input name="stock_quantity" type="number" min="0" label="Stock available online" :value="$product->stock_quantity" hint="Leave blank if you do not track stock. When set, it goes down with each paid order and the product cannot be bought at 0." />
             </div>
