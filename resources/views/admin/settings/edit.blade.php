@@ -136,8 +136,8 @@
                 <h2 class="text-lg font-semibold">Check customer notifications</h2>
                 <p class="text-sm">Send a test message to yourself to make sure customers will receive their confirmations.</p>
                 <div class="grid gap-5 sm:grid-cols-2">
-                    <x-form.input name="test_email" type="email" label="Send a test email to" :value="auth()->user()->email" />
-                    <x-form.input name="test_phone" type="tel" label="Send a test SMS to" :value="auth()->user()->phone" hint="e.g. 024 123 4567" />
+                    <x-form.input name="test_email" type="email" label="Send a test email to" :value="str_ends_with(auth()->user()->email, '.test') ? '' : auth()->user()->email" hint="Use a real address you can check. Demo accounts (…@innes.test) cannot receive email." />
+                    <x-form.input name="test_phone" type="tel" label="Send a test SMS to" :value="auth()->user()->phone" hint="Your own mobile number, e.g. 024 123 4567" />
                 </div>
                 <button class="btn-secondary" type="submit">Send test</button>
             </form>

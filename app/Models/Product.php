@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ProductAvailability;
 use App\Models\Concerns\HasSlug;
+use App\Services\PaystackClient;
 use App\Services\ShopService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -66,6 +67,39 @@ class Product extends Model
             && (float) $this->price > 0
             && $this->availability_status !== ProductAvailability::Unavailable
             && ($this->stock_quantity === null || $this->stock_quantity > 0);
+    }
+
+    /**
+     * Plain-language reasons why this product cannot be bought online right now (empty = it can).
+     *
+     * @return list<string>
+     */
+    public function purchaseBlockers(): array
+    {
+        $reasons = [];
+        if (! config('innes.features.shop')) {
+            $reasons[] = 'The shop is switched off (FEATURE_SHOP=false in .env).';
+        }
+        if (! app(PaystackClient::class)->configured()) {
+            $reasons[] = 'Paystack is not set up: add PAYSTACK_SECRET_KEY to .env, then run php artisan config:clear and restart the site.';
+        }
+        if (! $this->is_purchasable) {
+            $reasons[] = '"Sell online" is not ticked.';
+        }
+        if (! $this->is_published) {
+            $reasons[] = 'The product is not published.';
+        }
+        if (! ((float) $this->price > 0)) {
+            $reasons[] = 'It has no price.';
+        }
+        if ($this->availability_status === ProductAvailability::Unavailable) {
+            $reasons[] = 'Its availability label is "Unavailable".';
+        }
+        if ($this->stock_quantity !== null && $this->stock_quantity <= 0) {
+            $reasons[] = 'Stock available online is 0.';
+        }
+
+        return $reasons;
     }
 
     /** Largest quantity one customer can put in the cart. */

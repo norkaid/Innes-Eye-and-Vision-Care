@@ -27,7 +27,7 @@
                         </div>
                         <button type="submit" class="btn-primary"><x-icon name="cart" class="h-4 w-4" /> Add to cart</button>
                     </form>
-                    <p class="mt-2 text-sm">Pay securely online by card or mobile money, then collect in branch@if (app(\App\Services\ShopService::class)->deliveryEnabled()) or have it delivered@endif.</p>
+                    <p class="mt-2 text-sm">Pay securely online by card or mobile money, then {{ app(\App\Services\ShopService::class)->deliveryEnabled() ? 'collect in branch or have it delivered' : 'collect in branch' }}.</p>
                 @endif
                 <div class="mt-8 flex flex-wrap gap-3">
                     @unless ($product->canBeBought())
