@@ -28,8 +28,10 @@ Clone the repository into a folder **next to** `public_html` (not inside it):
 
 ```bash
 cd ~/domains/example.com
-git clone -b claude/affectionate-pascal-u5lahv https://github.com/norkaid/Innes-Eye-and-Vision-Care.git innes
+git clone https://github.com/norkaid/Innes-Eye-and-Vision-Care.git innes
 ```
+
+This uses the `main` branch. If the server was cloned earlier from another branch, switch once with `cd innes && git checkout main`; `deploy.sh` then pulls from `main`.
 
 If the repository is private, create a GitHub **personal access token** (read-only, this repo) and use `https://<TOKEN>@github.com/norkaid/Innes-Eye-and-Vision-Care.git`, or add the server's SSH key as a deploy key in GitHub → repo → Settings → Deploy keys.
 
