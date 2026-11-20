@@ -30,7 +30,9 @@
                     <p class="mt-2 text-sm">Pay securely online by card or mobile money, then collect in branch@if (app(\App\Services\ShopService::class)->deliveryEnabled()) or have it delivered@endif.</p>
                 @endif
                 <div class="mt-8 flex flex-wrap gap-3">
-                    <a href="{{ route('contact', ['product' => $product->slug]) }}" class="{{ $product->canBeBought() ? 'btn-secondary' : 'btn-primary' }}"><x-icon name="mail" class="h-4 w-4" /> Enquire About This Product</a>
+                    @unless ($product->canBeBought())
+                        <a href="{{ route('contact', ['product' => $product->slug]) }}" class="btn-primary"><x-icon name="mail" class="h-4 w-4" /> Enquire About This Product</a>
+                    @endunless
                     <a href="{{ route('appointments.create') }}" class="btn-secondary">Book an eye test</a>
                 </div>
                 @unless ($product->canBeBought())<p class="mt-4 text-sm">Availability is not guaranteed and may vary by branch. We will confirm when we reply to your enquiry.</p>@endunless

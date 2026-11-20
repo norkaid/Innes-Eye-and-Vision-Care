@@ -117,6 +117,10 @@ PAYSTACK_SECRET_KEY=sk_live_...
 
 In the Paystack dashboard (**Settings → API Keys & Webhooks**) set the **Webhook URL** to `https://example.com/paystack/webhook` and the **Callback URL** can be left empty (the site sends its own). Run `php artisan config:cache` after changing `.env`.
 
+### SMS notifications
+
+Add the SMS provider to `.env` (see the README, *SMS notifications*), e.g. `SMS_DRIVER=arkesel`, `SMS_SENDER_ID=InnesEye`, `ARKESEL_API_KEY=…`, then `php artisan config:cache`. Check it with Admin → Settings → **Check customer notifications → Send test**.
+
 ## 4. Point the domain at Laravel's `public` folder
 
 The website must be served from `innes/public`, never from the project root (that would expose `.env`).

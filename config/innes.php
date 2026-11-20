@@ -151,6 +151,11 @@ return [
         'cancellation_cutoff_hours' => 24,
         'notify_customer_emails' => true,
         'notify_staff_email' => null,
+        // Appointment payments: every request pays deposit_percent % of the consultation fee online
+        // (a service can set its own fee). The balance is paid at the clinic.
+        'consultation_fee' => 500,
+        'deposit_percent' => 30,
+        'notify_customer_sms' => true,
         'shop_pickup_enabled' => true,
         'shop_delivery_enabled' => false,
         'shop_delivery_fee' => 0,

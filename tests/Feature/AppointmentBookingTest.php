@@ -192,7 +192,7 @@ class AppointmentBookingTest extends TestCase
 
         app(Settings::class)->put(['notify_customer_emails' => false]);
         $this->followingRedirects()->post('/appointments', $this->bookingPayload($branch, $service))
-            ->assertSee('We have not sent an email acknowledgement');
+            ->assertSee('We have not sent an acknowledgement message');
         $this->assertDatabaseHas('notification_deliveries', ['notification_type' => 'AppointmentRequestReceived', 'status' => 'skipped']);
 
         app(Settings::class)->put(['notify_customer_emails' => true]);

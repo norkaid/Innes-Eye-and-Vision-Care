@@ -6,7 +6,7 @@
         </div>
         @if ($appointment->canBePaid())
             <div class="mt-4 flex flex-wrap items-center gap-3 rounded-lg bg-sky/50 p-4">
-                <p class="text-sm">Booking fee due: <strong class="text-navy">{{ \App\Services\ShopService::money($appointment->amount_due) }}</strong></p>
+                <p class="text-sm">Deposit due: <strong class="text-navy">{{ \App\Services\ShopService::money($appointment->amount_due) }}</strong></p>
                 <a href="{{ $appointment->paymentUrl() }}" class="btn-primary btn-sm"><x-icon name="card" class="h-4 w-4" /> Pay now</a>
             </div>
         @endif

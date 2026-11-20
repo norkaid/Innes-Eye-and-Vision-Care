@@ -18,7 +18,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
@@ -223,33 +222,58 @@ class PaymentsTest extends TestCase
         $this->assertSame(OrderStatus::Paid, Order::sole()->status);
     }
 
-    public function test_appointment_booking_fee_payment(): void
+    public function test_appointment_deposit_is_30_percent_of_consultation_fee_and_paid_at_booking(): void
     {
         $this->fakePaystack();
         $this->freezeMonday();
         [$branch, $service] = $this->branchWithService();
-        $service->update(['booking_fee' => 50]);
 
-        $this->post('/appointments', $this->bookingPayload($branch, $service))->assertRedirect('/appointments/received');
+        $this->get('/appointments/book')->assertSee('GH₵ 500.00')->assertSee('GH₵ 150.00')->assertSee('Continue to pay deposit');
+
+        // Submitting the request goes straight to Paystack for the deposit.
+        $response = $this->post('/appointments', $this->bookingPayload($branch, $service));
         $appointment = Appointment::sole();
-        $this->assertSame(PaymentStatus::Unpaid, $appointment->payment_status);
-        $this->get('/appointments/received')->assertSee('Booking fee: GH₵ 50.00')->assertSee('Pay booking fee');
-
-        $this->get('/appointments/'.$appointment->reference_code.'/pay')->assertForbidden();
-        $this->get($appointment->paymentUrl())->assertOk()->assertSee('Pay with Paystack');
-
-        $start = $this->post(URL::signedRoute('appointments.pay.start', $appointment));
         $payment = Payment::sole();
-        $start->assertRedirect('https://checkout.paystack.test/'.$payment->reference);
-        $this->assertSame(5000, $payment->amount_minor);
+        $response->assertRedirect('https://checkout.paystack.test/'.$payment->reference);
+        $this->assertSame(15000, $payment->amount_minor);
+        $this->assertSame('500.00', (string) $appointment->consultation_fee);
+        $this->assertSame(30, $appointment->deposit_percent);
+        $this->assertSame(PaymentStatus::Unpaid, $appointment->payment_status);
 
+        // Staff cannot confirm before the deposit is paid.
+        $staff = $this->staff('receptionist');
+        $confirm = ['status' => 'confirmed', 'start_date' => $appointment->requested_date->toDateString(), 'start_time' => substr($appointment->requested_time, 0, 5), 'notify' => '1'];
+        $this->actingAs($staff)->get("/admin/appointments/{$appointment->reference_code}")->assertOk()->assertSee('Record deposit paid at branch')->assertSee('GH₵ 150.00');
+        $this->actingAs($staff)->patch("/admin/appointments/{$appointment->reference_code}", $confirm)->assertSessionHasErrors('status');
+
+        auth()->logout();
+        $this->get('/appointments/'.$appointment->reference_code.'/pay')->assertForbidden();
         $this->get('/payments/callback?reference='.$payment->reference)->assertRedirect($appointment->paymentUrl());
         $appointment->refresh();
         $this->assertSame(PaymentStatus::Paid, $appointment->payment_status);
-        // Paying never confirms the appointment.
-        $this->assertSame('pending', $appointment->status->value);
+        $this->assertSame('pending', $appointment->status->value); // paying never confirms
+        $this->assertSame(350.0, $appointment->balanceDue());
+        $this->get($appointment->paymentUrl())->assertSee('Deposit paid')->assertSee('GH₵ 350.00')->assertSee('not yet confirmed');
 
-        $this->actingAs($this->staff('receptionist'))->get("/admin/appointments/{$appointment->reference_code}")->assertOk()->assertSee('Booking fee')->assertSee('Paid');
+        $this->actingAs($staff)->get("/admin/appointments/{$appointment->reference_code}")->assertOk()->assertSee('GH₵ 350.00');
+        $this->actingAs($staff)->patch("/admin/appointments/{$appointment->reference_code}", $confirm)->assertSessionHasNoErrors();
+        $this->assertSame('confirmed', $appointment->fresh()->status->value);
+        $this->actingAs($staff)->get("/admin/appointments/{$appointment->reference_code}")->assertOk();
+    }
+
+    public function test_service_fee_overrides_standard_fee_and_deposit_can_be_recorded_at_branch(): void
+    {
+        $this->fakePaystack();
+        $this->freezeMonday();
+        [$branch, $service] = $this->branchWithService();
+        $service->update(['booking_fee' => 200]);
+        $this->post('/appointments', $this->bookingPayload($branch, $service));
+        $appointment = Appointment::sole();
+        $this->assertSame('60.00', (string) $appointment->amount_due);
+
+        $this->actingAs($this->staff('receptionist'))->post("/admin/appointments/{$appointment->reference_code}/deposit")->assertRedirect();
+        $this->assertSame(PaymentStatus::Paid, $appointment->fresh()->payment_status);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'appointment.deposit_recorded']);
     }
 
     public function test_no_fee_when_payments_not_configured(): void
@@ -257,8 +281,7 @@ class PaymentsTest extends TestCase
         config(['services.paystack.secret_key' => null]);
         $this->freezeMonday();
         [$branch, $service] = $this->branchWithService();
-        $service->update(['booking_fee' => 50]);
-        $this->post('/appointments', $this->bookingPayload($branch, $service));
+        $this->post('/appointments', $this->bookingPayload($branch, $service))->assertRedirect('/appointments/received');
         $this->assertSame(PaymentStatus::NotRequired, Appointment::sole()->payment_status);
     }
 

@@ -25,6 +25,22 @@ return [
         'currency' => env('PAYSTACK_CURRENCY', 'GHS'),
     ],
 
+    /*
+    | SMS to customers. SMS_DRIVER: log (PC: writes to the log), arkesel, hubtel, twilio, or empty (off).
+    | SMS_SENDER_ID must be registered/approved with the provider (max 11 characters).
+    */
+    'sms' => [
+        'driver' => env('SMS_DRIVER'),
+        'sender_id' => env('SMS_SENDER_ID', 'InnesEye'),
+        'country_code' => env('SMS_COUNTRY_CODE', '233'),
+        'arkesel_key' => env('ARKESEL_API_KEY'),
+        'hubtel_client_id' => env('HUBTEL_CLIENT_ID'),
+        'hubtel_client_secret' => env('HUBTEL_CLIENT_SECRET'),
+        'twilio_sid' => env('TWILIO_SID'),
+        'twilio_token' => env('TWILIO_TOKEN'),
+        'twilio_from' => env('TWILIO_FROM'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

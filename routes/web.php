@@ -117,6 +117,7 @@ Route::middleware(['auth', 'staff'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/appointments/{appointment}', [Admin\AppointmentController::class, 'show'])->name('appointments.show');
         Route::patch('/appointments/{appointment}', [Admin\AppointmentController::class, 'update'])->middleware('can:appointments.manage')->name('appointments.update');
         Route::patch('/appointments/{appointment}/note', [Admin\AppointmentController::class, 'note'])->middleware('can:appointments.manage')->name('appointments.note');
+        Route::post('/appointments/{appointment}/deposit', [Admin\AppointmentController::class, 'recordDeposit'])->middleware('can:appointments.manage')->name('appointments.deposit');
         Route::post('/appointments/{appointment}/refund', [Admin\AppointmentController::class, 'refund'])->middleware('can:appointments.manage')->name('appointments.refund');
     });
 
@@ -198,6 +199,7 @@ Route::middleware(['auth', 'staff'])->prefix('admin')->name('admin.')->group(fun
 
     Route::get('/settings', [Admin\SettingsController::class, 'edit'])->middleware('can:settings.access')->name('settings.edit');
     Route::put('/settings', [Admin\SettingsController::class, 'update'])->middleware('can:settings.access')->name('settings.update');
+    Route::post('/settings/test-notification', [Admin\SettingsController::class, 'test'])->middleware(['can:settings.system', 'throttle:10,1'])->name('settings.test');
 
     Route::middleware('can:reports.view')->group(function () {
         Route::get('/reports', [Admin\ReportController::class, 'index'])->name('reports.index');

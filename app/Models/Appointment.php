@@ -24,7 +24,7 @@ class Appointment extends Model implements Payable
      */
     protected $fillable = [
         'branch_id', 'service_id', 'customer_name', 'customer_email', 'customer_phone',
-        'requested_date', 'requested_time', 'customer_note',
+        'requested_date', 'requested_time', 'customer_note', 'notify_email', 'notify_sms',
     ];
 
     protected $hidden = ['staff_note'];
@@ -40,6 +40,10 @@ class Appointment extends Model implements Payable
             'status' => AppointmentStatus::class,
             'payment_status' => PaymentStatus::class,
             'amount_due' => 'decimal:2',
+            'consultation_fee' => 'decimal:2',
+            'deposit_percent' => 'integer',
+            'notify_email' => 'boolean',
+            'notify_sms' => 'boolean',
             'paid_at' => 'datetime',
         ];
     }
@@ -137,7 +141,17 @@ class Appointment extends Model implements Payable
 
     public function paymentDescription(): string
     {
-        return 'Appointment fee '.$this->reference_code;
+        return 'Appointment deposit '.$this->reference_code;
+    }
+
+    /** Amount still to pay at the clinic after the deposit. */
+    public function balanceDue(): ?float
+    {
+        if (! $this->consultation_fee) {
+            return null;
+        }
+
+        return round((float) $this->consultation_fee - ($this->payment_status === PaymentStatus::Paid ? (float) $this->amount_due : 0), 2);
     }
 
     public function markPaid(Payment $payment): void

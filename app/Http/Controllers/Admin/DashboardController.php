@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\AppointmentStatus;
 use App\Enums\EnquiryStatus;
 use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\AuditLog;
@@ -24,12 +25,16 @@ class DashboardController extends Controller
         $data = ['stats' => []];
 
         if ($user->can('appointments.view')) {
-            $data['stats']['pending'] = Appointment::whereIn('status', [AppointmentStatus::Pending->value, AppointmentStatus::RescheduleRequested->value])->count();
+            // Requests still waiting for their deposit are counted separately: they cannot be confirmed yet.
+            $data['stats']['pending'] = Appointment::whereIn('status', [AppointmentStatus::Pending->value, AppointmentStatus::RescheduleRequested->value])
+                ->where('payment_status', '!=', PaymentStatus::Unpaid->value)->count();
+            $data['stats']['awaiting_deposit'] = Appointment::where('status', AppointmentStatus::Pending->value)->where('payment_status', PaymentStatus::Unpaid->value)->count();
             $data['stats']['confirmed_upcoming'] = Appointment::where('status', AppointmentStatus::Confirmed->value)->where('confirmed_start_at', '>=', now())->count();
             $data['todays'] = Appointment::with(['branch', 'service'])->where('status', AppointmentStatus::Confirmed->value)
                 ->whereBetween('confirmed_start_at', [today(), today()->endOfDay()])->orderBy('confirmed_start_at')->get();
             $data['awaiting'] = Appointment::with(['branch', 'service'])
                 ->whereIn('status', [AppointmentStatus::Pending->value, AppointmentStatus::RescheduleRequested->value])
+                ->where('payment_status', '!=', PaymentStatus::Unpaid->value)
                 ->oldest()->limit(6)->get();
         }
         if ($user->can('enquiries.view')) {

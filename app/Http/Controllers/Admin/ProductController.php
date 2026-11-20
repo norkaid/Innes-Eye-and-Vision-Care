@@ -35,7 +35,7 @@ class ProductController extends Controller
 
     public function create()
     {
-        return view('admin.products.form', ['product' => new Product(['availability_status' => ProductAvailability::Enquire]), 'categories' => ProductCategory::orderBy('name')->pluck('name', 'id')]);
+        return view('admin.products.form', ['product' => new Product(['availability_status' => ProductAvailability::Available, 'is_purchasable' => true]), 'categories' => ProductCategory::orderBy('name')->pluck('name', 'id')]);
     }
 
     public function store(Request $request)

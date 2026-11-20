@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Exceptions\PaymentGatewayException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Appointment\StoreAppointmentRequest;
 use App\Models\Branch;
 use App\Models\Service;
 use App\Services\AppointmentService;
 use App\Services\AvailabilityService;
+use App\Services\PaymentService;
+use App\Services\ShopService;
+use App\Services\SmsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -17,7 +21,11 @@ class AppointmentController extends Controller
     public function create(Request $request, AvailabilityService $availability)
     {
         $branches = Branch::active()->ordered()->with(['services' => fn ($q) => $q->published()])->get();
-        $services = Service::published()->ordered()->get(['id', 'name', 'slug']);
+        $services = Service::published()->ordered()->get(['id', 'name', 'slug', 'booking_fee']);
+        $shop = app(ShopService::class);
+        $label = fn (array $c) => ['fee' => ShopService::money($c['fee']), 'deposit' => ShopService::money($c['deposit']), 'balance' => ShopService::money($c['balance']), 'percent' => $c['percent']];
+        $charges = $services->mapWithKeys(fn ($s) => [$s->id => $label($shop->appointmentCharges($s))])->all();
+        $charges['default'] = $label($shop->appointmentCharges(null));
 
         $branchServices = $branches->mapWithKeys(fn ($b) => [$b->id => $b->services->pluck('id')->all()]);
         $preService = $services->firstWhere('slug', $request->string('service')->toString());
@@ -34,6 +42,9 @@ class AppointmentController extends Controller
             'maxDate' => $availability->latestBookableDate()->toDateString(),
             'windowDays' => (int) today()->diffInDays($availability->latestBookableDate()),
             'user' => $user,
+            'charges' => $charges,
+            'depositsOn' => $shop->appointmentPaymentsEnabled() && $shop->appointmentCharges(null)['percent'] > 0,
+            'smsAvailable' => app(SmsService::class)->enabled(),
         ]);
     }
 
@@ -65,6 +76,15 @@ class AppointmentController extends Controller
 
         // Only the reference is passed on – never the internal ID or customer details.
         $appointment = $result['appointment'];
+
+        // The deposit is paid straight away on Paystack's page; the return page shows the request.
+        if ($appointment->canBePaid()) {
+            try {
+                return redirect()->away(app(PaymentService::class)->start($appointment));
+            } catch (PaymentGatewayException $e) {
+                session()->flash('error', 'Your request was saved, but the payment page could not be opened: '.$e->getMessage());
+            }
+        }
 
         return redirect()->route('appointments.received')
             ->with('appointment_reference', $appointment->reference_code)

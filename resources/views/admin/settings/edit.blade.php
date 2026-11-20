@@ -114,15 +114,32 @@
                     <x-form.input name="booking_lead_time_hours" type="number" min="0" label="Minimum notice (hours)" required :value="$values['booking_lead_time_hours']" hint="Earliest a request can be for." />
                     <x-form.input name="booking_window_days" type="number" min="1" label="Booking window (days ahead)" required :value="$values['booking_window_days']" />
                     <x-form.select name="slot_duration_minutes" label="Appointment slot length" required :options="collect([10, 15, 20, 30, 45, 60, 90, 120])->mapWithKeys(fn ($m) => [$m => $m.' minutes'])->all()" :value="$values['slot_duration_minutes']" />
-                    <x-form.input name="slot_capacity" type="number" min="1" label="Confirmed appointments per slot (per branch)" required :value="$values['slot_capacity']" hint="e.g. number of examination rooms." />
+                    <x-form.input name="slot_capacity" type="number" min="1" label="Confirmed appointments per slot (per branch)" required :value="$values['slot_capacity']" hint="How many people staff may confirm at the same time (e.g. examination rooms). Online, a time is never offered again once it is confirmed for someone." />
                     <x-form.input name="cancellation_cutoff_hours" type="number" min="0" label="Online change cut-off (hours before)" required :value="$values['cancellation_cutoff_hours']" />
                 </div>
                 <div class="grid gap-5 sm:grid-cols-2">
                     <x-form.checkbox name="notify_customer_emails" label="Send customer acknowledgement and status emails" :checked="filter_var($values['notify_customer_emails'], FILTER_VALIDATE_BOOL)" hint="Requires a working mail configuration (MAIL_* settings)." />
                     <x-form.input name="notify_staff_email" type="email" label="Staff alert email" :value="$values['notify_staff_email']" hint="Receives an alert (without personal details) for new requests and enquiries." />
                 </div>
-                <p class="text-sm">Current mail driver: <strong class="text-navy">{{ config('mail.default') }}</strong>@if (config('mail.default') === 'log') (development – messages are written to the log file, not delivered)@endif</p>
+                <div class="grid gap-5 sm:grid-cols-2">
+                    <x-form.input name="consultation_fee" type="number" step="0.01" min="0" label="Standard consultation fee (GH₵)" required :value="$values['consultation_fee']" hint="Used for services without their own fee." />
+                    <x-form.input name="deposit_percent" type="number" min="0" max="100" label="Deposit paid online when booking (%)" required :value="$values['deposit_percent']" hint="e.g. 30 = 30% of the fee. 0 switches deposits off." />
+                    <x-form.checkbox name="notify_customer_sms" label="Send customers SMS updates (when they choose SMS)" :checked="filter_var($values['notify_customer_sms'], FILTER_VALIDATE_BOOL)" hint="Needs an SMS provider in .env (SMS_DRIVER)." />
+                </div>
+                <p class="text-sm">Email: <strong class="text-navy">{{ config('mail.default') }}</strong>@if (config('mail.default') === 'log') (messages are written to the log file, not delivered)@endif ·
+                    SMS: <strong class="text-navy">{{ config('services.sms.driver') ?: 'off' }}</strong>@if (config('services.sms.driver') === 'log') (texts are written to the log file, not delivered)@endif</p>
                 <button class="btn-primary" type="submit">Save rules</button>
+            </form>
+
+            <form method="POST" action="{{ route('admin.settings.test') }}" class="card space-y-5 p-6" novalidate>
+                @csrf
+                <h2 class="text-lg font-semibold">Check customer notifications</h2>
+                <p class="text-sm">Send a test message to yourself to make sure customers will receive their confirmations.</p>
+                <div class="grid gap-5 sm:grid-cols-2">
+                    <x-form.input name="test_email" type="email" label="Send a test email to" :value="auth()->user()->email" />
+                    <x-form.input name="test_phone" type="tel" label="Send a test SMS to" :value="auth()->user()->phone" hint="e.g. 024 123 4567" />
+                </div>
+                <button class="btn-secondary" type="submit">Send test</button>
             </form>
         @endcan
     </div>

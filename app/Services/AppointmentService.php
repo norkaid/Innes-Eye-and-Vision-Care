@@ -9,8 +9,6 @@ use App\Models\AppointmentStatusHistory;
 use App\Models\Branch;
 use App\Models\Service;
 use App\Models\User;
-use App\Notifications\AppointmentRequestReceived;
-use App\Notifications\AppointmentStatusChanged;
 use App\Notifications\StaffNewAppointmentRequest;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -44,11 +42,14 @@ class AppointmentService
             if ($user && $user->isCustomer()) {
                 $appointment->user_id = $user->id;
             }
-            // A booking fee applies only when the service has one and online payment is set up.
-            $fee = (float) Service::whereKey($appointment->service_id)->value('booking_fee');
-            if ($fee > 0 && app(ShopService::class)->appointmentPaymentsEnabled()) {
+            // Deposit: a share of the consultation fee, paid online when payments are set up.
+            $shop = app(ShopService::class);
+            $charges = $shop->appointmentCharges(Service::find($appointment->service_id));
+            $appointment->consultation_fee = $charges['fee'] ?: null;
+            $appointment->deposit_percent = $charges['percent'];
+            if ($charges['deposit'] > 0 && $shop->appointmentPaymentsEnabled()) {
                 $appointment->payment_status = PaymentStatus::Unpaid;
-                $appointment->amount_due = $fee;
+                $appointment->amount_due = $charges['deposit'];
             } else {
                 $appointment->payment_status = PaymentStatus::NotRequired;
             }
@@ -59,7 +60,8 @@ class AppointmentService
             return $appointment;
         });
 
-        $acknowledged = $this->notifications->toCustomer($appointment->customer_email, new AppointmentRequestReceived($appointment), $appointment);
+        $sent = app(AppointmentNotifier::class)->requestReceived($appointment);
+        $acknowledged = $sent['email'] || $sent['sms'];
         $this->notifications->toStaff(new StaffNewAppointmentRequest($appointment), $appointment);
 
         return ['appointment' => $appointment, 'acknowledged' => $acknowledged];
@@ -100,6 +102,9 @@ class AppointmentService
                 if (! $this->availability->withinOpeningHours($branch, $start, $end)) {
                     throw ValidationException::withMessages(['start_time' => 'The selected time is outside the branch opening hours.']);
                 }
+                if ($target === AppointmentStatus::Confirmed && $fresh->payment_status === PaymentStatus::Unpaid) {
+                    throw ValidationException::withMessages(['status' => 'The deposit for this request has not been paid yet. Wait for the online payment, or use "Record deposit paid at branch" if the customer paid another way.']);
+                }
                 if ($target === AppointmentStatus::Confirmed && ! $this->availability->fitsConfirmed($branch, $start, $end, $fresh->id)) {
                     throw ValidationException::withMessages(['start_time' => 'This time conflicts with another confirmed appointment at this branch (capacity reached). Choose another time.']);
                 }
@@ -133,7 +138,7 @@ class AppointmentService
         });
 
         if (($input['notify'] ?? true) && in_array($target, [AppointmentStatus::Confirmed, AppointmentStatus::RescheduleProposed, AppointmentStatus::Declined, AppointmentStatus::Cancelled], true)) {
-            $this->notifications->toCustomer($updated->customer_email, new AppointmentStatusChanged($updated), $updated);
+            app(AppointmentNotifier::class)->statusChanged($updated);
         }
 
         return $updated;

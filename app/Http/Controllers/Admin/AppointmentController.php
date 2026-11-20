@@ -26,6 +26,7 @@ class AppointmentController extends Controller
             'service' => ['nullable', 'integer'],
             'from' => ['nullable', 'date_format:Y-m-d'],
             'to' => ['nullable', 'date_format:Y-m-d'],
+            'payment' => ['nullable', Rule::enum(PaymentStatus::class)],
         ]);
 
         $appointments = Appointment::with(['branch', 'service'])
@@ -35,6 +36,7 @@ class AppointmentController extends Controller
             ->when($filters['service'] ?? null, fn ($q, $v) => $q->where('service_id', $v))
             ->when($filters['from'] ?? null, fn ($q, $v) => $q->whereDate('requested_date', '>=', $v))
             ->when($filters['to'] ?? null, fn ($q, $v) => $q->whereDate('requested_date', '<=', $v))
+            ->when($filters['payment'] ?? null, fn ($q, $v) => $q->where('payment_status', $v))
             ->orderByRaw("CASE WHEN status IN ('pending','reschedule_requested') THEN 0 ELSE 1 END")
             ->orderBy('requested_date')
             ->paginate(20)->withQueryString();
@@ -96,5 +98,17 @@ class AppointmentController extends Controller
         $audit->log('appointment.refund_recorded', $appointment, ['reference' => $appointment->reference_code]);
 
         return back()->with('success', 'Refund recorded.');
+    }
+
+    /** The customer paid the deposit in person (cash or mobile money at the branch). */
+    public function recordDeposit(Appointment $appointment, AuditLogger $audit)
+    {
+        abort_unless($appointment->payment_status === PaymentStatus::Unpaid, 422);
+        $appointment->payment_status = PaymentStatus::Paid;
+        $appointment->paid_at = now();
+        $appointment->save();
+        $audit->log('appointment.deposit_recorded', $appointment, ['reference' => $appointment->reference_code, 'amount' => (string) $appointment->amount_due]);
+
+        return back()->with('success', 'Deposit recorded as paid at the branch. You can now confirm the request.');
     }
 }
