@@ -20,7 +20,8 @@ return [
     */
     'paystack' => [
         'public_key' => env('PAYSTACK_PUBLIC_KEY'),
-        'secret_key' => env('PAYSTACK_SECRET_KEY'),
+        // PAYSTACK_PRIVATE_KEY is accepted too, as Paystack's dashboard calls it the "secret" key.
+        'secret_key' => env('PAYSTACK_SECRET_KEY', env('PAYSTACK_PRIVATE_KEY')),
         'base_url' => env('PAYSTACK_BASE_URL', 'https://api.paystack.co'),
         'currency' => env('PAYSTACK_CURRENCY', 'GHS'),
     ],

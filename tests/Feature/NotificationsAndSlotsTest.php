@@ -153,4 +153,13 @@ class NotificationsAndSlotsTest extends TestCase
         config(['services.paystack.secret_key' => 'sk_test_x']);
         $this->actingAs($admin)->get("/admin/products/{$product->id}/edit")->assertSee('Customers can buy this product online');
     }
+
+    public function test_doctor_command_reports_missing_paystack_key(): void
+    {
+        config(['services.paystack.secret_key' => null]);
+        $this->artisan('innes:doctor')->expectsOutputToContain('No Paystack secret key is loaded')->assertSuccessful();
+
+        config(['services.paystack.secret_key' => 'sk_test_x']);
+        $this->artisan('innes:doctor')->expectsOutputToContain('Secret key found (TEST mode')->assertSuccessful();
+    }
 }

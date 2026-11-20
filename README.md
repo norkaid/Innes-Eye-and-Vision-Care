@@ -301,7 +301,7 @@ PAYSTACK_PUBLIC_KEY=pk_test_...
 PAYSTACK_SECRET_KEY=sk_test_...
 ```
 
-Then run `php artisan config:clear` and restart the site. Until `PAYSTACK_SECRET_KEY` is set, the cart and payment buttons stay hidden and **Admin → Payments** shows a warning. **Never commit the secret key or paste it anywhere public.** `FEATURE_SHOP=false` or `FEATURE_APPOINTMENT_PAYMENTS=false` switch either part off.
+Then run `php artisan config:clear` and restart the site, and check with `php artisan innes:doctor`. (`PAYSTACK_PRIVATE_KEY=` is accepted as another name for the secret key.) Until the secret key is set, the cart and payment buttons stay hidden and **Admin → Payments** shows a warning. **Never commit the secret key or paste it anywhere public.** `FEATURE_SHOP=false` or `FEATURE_APPOINTMENT_PAYMENTS=false` switch either part off.
 
 ### 2. Choose what can be paid for
 
@@ -511,6 +511,12 @@ php artisan innes:import-content storage/app/innes-content-<date>.json.gz
 ---
 
 ## Troubleshooting
+
+**First, run the check-up.** It lists what is switched on or missing (Paystack key, shop, deposit, SMS, email, database, cached settings) and how to fix each item. It never prints your keys.
+
+```bash
+php artisan innes:doctor
+```
 
 | Problem | Cause and fix |
 |---|---|
