@@ -164,14 +164,18 @@ cd C:\dev
 ```
 
 ```bash
-git clone -b claude/affectionate-pascal-u5lahv https://github.com/norkaid/Innes-Eye-and-Vision-Care.git
+git clone https://github.com/norkaid/Innes-Eye-and-Vision-Care.git
 ```
+
+This downloads the `main` branch, which always has the latest working version.
 
 ```bash
 cd Innes-Eye-and-Vision-Care
 ```
 
 On macOS/Linux use a folder such as `~/dev` instead of `C:\dev`.
+
+> **Already cloned from the `claude/affectionate-pascal-u5lahv` branch?** Switch to `main` once with `git checkout main`, then `git pull` and `php artisan migrate`. Your database and `.env` are not affected.
 
 ### Step 4: Install the PHP packages
 
