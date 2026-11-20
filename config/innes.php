@@ -65,6 +65,7 @@ return [
         'products.manage' => 'Manage products and categories',
         'branches.manage' => 'Manage branches and opening hours',
         'articles.manage' => 'Manage health articles',
+        'team.manage' => 'Manage team profiles on the About page',
         'staff.manage' => 'Manage staff accounts and roles',
         'settings.general' => 'Manage public business details',
         'settings.system' => 'Manage appointment rules and notification settings',
@@ -95,7 +96,7 @@ return [
                 'dashboard.view', 'appointments.view', 'appointments.manage', 'customers.view', 'customers.manage',
                 'enquiries.view', 'enquiries.manage', 'services.manage', 'products.manage', 'branches.manage',
                 'articles.manage', 'settings.general', 'reports.view', 'reports.export', 'audit.view',
-                'media.manage',
+                'media.manage', 'team.manage',
             ],
         ],
         'receptionist' => [
@@ -112,7 +113,7 @@ return [
             'rank' => 40,
             'description' => 'Website content: services, products and articles. No access to private appointment information.',
             'permissions' => [
-                'dashboard.view', 'services.manage', 'products.manage', 'articles.manage', 'media.manage',
+                'dashboard.view', 'services.manage', 'products.manage', 'articles.manage', 'media.manage', 'team.manage',
             ],
         ],
     ],
@@ -123,6 +124,8 @@ return [
     'settings_defaults' => [
         'business_name' => 'Innes Eye & Visioncare Centre',
         'logo_path' => null,
+        'hero_image_path' => null,
+        'about_image_path' => null,
         'tagline' => 'Trusted eye care and stylish vision solutions',
         'contact_email' => null,
         'contact_phone' => null,

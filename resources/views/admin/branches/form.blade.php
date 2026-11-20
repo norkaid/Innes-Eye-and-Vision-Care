@@ -1,6 +1,6 @@
 <x-layouts.admin :title="$branch->exists ? 'Edit branch' : 'New branch'">
     <x-slot:breadcrumb><a href="{{ route('admin.branches.index') }}">Branches</a></x-slot:breadcrumb>
-    <form method="POST" action="{{ $branch->exists ? route('admin.branches.update', $branch) : route('admin.branches.store') }}" class="grid gap-6 xl:grid-cols-3" novalidate>
+    <form method="POST" action="{{ $branch->exists ? route('admin.branches.update', $branch) : route('admin.branches.store') }}" enctype="multipart/form-data" class="grid gap-6 xl:grid-cols-3" novalidate>
         @csrf
         @if ($branch->exists) @method('PUT') @endif
         <div class="space-y-6 xl:col-span-2">
@@ -20,6 +20,7 @@
                 </div>
                 <x-form.input name="map_url" type="url" label="Map / directions link" :value="$branch->map_url" hint="e.g. a Google Maps share link (https://…)." />
                 <x-form.textarea name="description" label="Description" rows="3" :value="$branch->description" />
+                <x-admin.image-field :current="$branch->image_path" label="Branch photo" folder="branches" />
             </div>
             <fieldset class="card p-6">
                 <legend class="sr-only">Opening hours</legend>

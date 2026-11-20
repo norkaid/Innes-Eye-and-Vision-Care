@@ -10,7 +10,9 @@ Everything below is created by `database/seeders/DemoContentSeeder.php` for loca
 | Product categories | Optical Frames, Sunglasses, Contact Lenses, Lenses | Confirmed categories | Admin → Product categories |
 | Products | 13 items named "… (Demo)" with "Demo Brand A–F", no prices, availability labels | Real catalogue items, brands, approved photos; prices only if approved | Admin → Products |
 | Articles | 4 published + 1 draft article, author "Demo Author" | Clinically reviewed, approved articles and author credits | Admin → Health articles |
-| Images | SVG placeholder illustrations in `public/images/` (hero, frame, service, article) | Licensed or business-supplied photography | Uploads in admin; hero image in `resources/views/public/home.blade.php` |
+| Images | SVG placeholder illustrations in `public/images/` (hero, frame, service, article) | Licensed or business-supplied photography | Admin → Media library; then Settings → Logo / Website images, and the picture field on each product, service, branch, article and team profile |
+| Logo | Standard text logo | The centre's logo (PNG with transparent background) | Admin → Settings → Logo |
+| Team | None (the About page says profiles will follow) | Practitioner and staff profiles, published only with each person's consent and verified qualifications | Admin → Team profiles |
 | Home "Why choose us" | Three neutral statements about the website's own features | Business-approved claims only | `resources/views/public/home.blade.php` |
 | About / mission / vision / values | Empty, with "to be confirmed" notices | Verified company background | Admin → Settings |
 | Contact details | None set | Official phone, email, social links, response-time note | Admin → Settings |
@@ -20,3 +22,5 @@ Everything below is created by `database/seeders/DemoContentSeeder.php` for loca
 | Site banner | "Demo website" notice | Set `SHOW_DEMO_NOTICE=false` once all content is verified | `.env` |
 
 A fresh production database contains **no** demo content: `php artisan migrate --force && php artisan db:seed --force` creates roles only.
+
+Content entered on a PC can be copied to the live site with **Admin → Content transfer**; items still marked as demo (containing "(Demo)", "DEMO DATA" or "DEMO ADDRESS") are left out by default.

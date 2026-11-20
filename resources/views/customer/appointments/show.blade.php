@@ -1,4 +1,4 @@
-<x-layouts.account title="Request {{ $appointment->reference_code }}">
+<x-layouts.account :title="'Request '.($appointment->reference_code)">
     <div class="card p-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 class="text-lg font-semibold">{{ $appointment->service->name }}</h2>

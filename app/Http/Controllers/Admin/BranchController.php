@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\Service;
 use App\Services\AuditLogger;
+use App\Services\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -13,7 +14,7 @@ use Illuminate\Validation\Validator;
 
 class BranchController extends Controller
 {
-    public function __construct(private AuditLogger $audit) {}
+    public function __construct(private AuditLogger $audit, private ImageUploader $images) {}
 
     public function index(Request $request)
     {
@@ -31,8 +32,10 @@ class BranchController extends Controller
     public function store(Request $request)
     {
         $data = $this->validated($request);
-        $branch = DB::transaction(function () use ($data) {
-            $branch = Branch::create($data);
+        $branch = DB::transaction(function () use ($data, $request) {
+            $branch = new Branch($data);
+            $branch->image_path = $this->images->fromRequest($request, null, 'branches');
+            $branch->save();
             $this->syncRelations($branch, $data);
 
             return $branch;
@@ -55,8 +58,10 @@ class BranchController extends Controller
     public function update(Request $request, Branch $branch)
     {
         $data = $this->validated($request, $branch);
-        DB::transaction(function () use ($branch, $data) {
-            $branch->update($data);
+        DB::transaction(function () use ($branch, $data, $request) {
+            $branch->fill($data);
+            $branch->image_path = $this->images->fromRequest($request, $branch->image_path, 'branches');
+            $branch->save();
             $this->syncRelations($branch, $data);
         });
         $this->audit->log('branch.updated', $branch, ['name' => $branch->name]);
@@ -116,6 +121,7 @@ class BranchController extends Controller
             'hours.*.is_closed' => ['nullable', 'boolean'],
             'hours.*.opens_at' => ['nullable', 'date_format:H:i'],
             'hours.*.closes_at' => ['nullable', 'date_format:H:i'],
+            ...ImageUploader::fieldRules(),
         ], [], ['map_url' => 'map link']);
 
         $validator->after(function (Validator $v) use ($request) {

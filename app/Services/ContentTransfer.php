@@ -34,13 +34,17 @@ class ContentTransfer
     private const MEDIA_TYPES = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
 
     private const COLUMNS = [
-        'branches' => ['name', 'slug', 'address', 'city', 'region', 'phone', 'email', 'map_url', 'description', 'is_active', 'display_order'],
+        'branches' => ['name', 'slug', 'address', 'city', 'region', 'phone', 'email', 'map_url', 'description', 'image_path', 'is_active', 'display_order'],
         'services' => ['name', 'slug', 'short_description', 'description', 'preparation', 'image_path', 'is_published', 'display_order'],
         'product_categories' => ['name', 'slug', 'description', 'is_active', 'display_order'],
         'products' => ['name', 'slug', 'brand', 'short_description', 'description', 'image_path', 'price', 'availability_status', 'is_published'],
         'article_categories' => ['name', 'slug'],
         'health_articles' => ['title', 'slug', 'excerpt', 'body', 'featured_image_path', 'author_display_name', 'status', 'published_at'],
+        'team_members' => ['name', 'slug', 'job_title', 'qualifications', 'bio', 'image_path', 'is_published', 'display_order'],
     ];
+
+    /** Settings that are copied (business details, booking rules and website images). */
+    private const SETTING_KEYS = ['logo_path', 'hero_image_path', 'about_image_path'];
 
     private const BOOLEANS = ['is_active', 'is_published', 'is_closed'];
 
@@ -79,7 +83,7 @@ class ContentTransfer
         $hours = DB::table('branch_opening_hours')->get()->groupBy('branch_id');
         $links = DB::table('branch_service')->get()->groupBy('branch_id');
 
-        $settingKeys = [...Settings::GENERAL_KEYS, ...Settings::SYSTEM_KEYS, 'logo_path'];
+        $settingKeys = [...Settings::GENERAL_KEYS, ...Settings::SYSTEM_KEYS, ...self::SETTING_KEYS];
 
         return [
             'format' => self::FORMAT,
@@ -113,6 +117,8 @@ class ContentTransfer
             'health_articles' => $articles->map(fn ($a) => $this->row($a, 'health_articles') + [
                 'category' => $a->article_category_id ? ($articleCategorySlugs[$a->article_category_id] ?? null) : null,
             ])->values()->all(),
+            'team_members' => DB::table('team_members')->orderBy('display_order')->orderBy('id')->get()
+                ->map(fn ($t) => $this->row($t, 'team_members'))->values()->all(),
         ];
     }
 
@@ -142,6 +148,7 @@ class ContentTransfer
             'Products' => $count('products'),
             'Article categories' => $count('article_categories'),
             'Health articles' => $count('health_articles'),
+            'Team profiles' => $count('team_members'),
             'Media library images' => ['all' => DB::table('media')->count(), 'demo' => 0],
         ];
     }
@@ -237,8 +244,17 @@ class ContentTransfer
                 $tally('Health articles', $this->upsert('health_articles', $item, ['article_category_id' => $categoryId])[1]);
             }
 
-            $settings = array_intersect_key((array) ($data['settings'] ?? []), array_flip([...Settings::GENERAL_KEYS, ...Settings::SYSTEM_KEYS, 'logo_path']));
+            foreach ($this->list($data, 'team_members') as $item) {
+                $tally('Team profiles', $this->upsert('team_members', $item)[1]);
+            }
+
+            $settings = array_intersect_key((array) ($data['settings'] ?? []), array_flip([...Settings::GENERAL_KEYS, ...Settings::SYSTEM_KEYS, ...self::SETTING_KEYS]));
             $settings = array_map(fn ($v) => is_scalar($v) || $v === null ? $v : null, $settings);
+            foreach (self::SETTING_KEYS as $imageKey) {
+                if (array_key_exists($imageKey, $settings)) {
+                    $settings[$imageKey] = $this->imagePath($settings[$imageKey]);
+                }
+            }
             if ($settings) {
                 $this->settings->put($settings);
                 $tally('Settings', false);

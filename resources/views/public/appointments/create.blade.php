@@ -1,4 +1,4 @@
-<x-layouts.public title="Book an appointment" description="Request an eye-care appointment online at {{ $site->get('business_name') }}. Our team will contact you to confirm.">
+<x-layouts.public title="Book an appointment" :description="'Request an eye-care appointment online at '.($site->get('business_name')).'. Our team will contact you to confirm.'">
     <x-page-header title="Request an appointment" eyebrow="Book Appointment" intro="Choose a branch, service and a preferred time. This sends a request – our team will review it and contact you to confirm." />
 
     <section class="container-page py-12">

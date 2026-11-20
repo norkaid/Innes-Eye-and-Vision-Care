@@ -1,5 +1,5 @@
-<x-layouts.public title="About us" description="Learn about {{ $site->get('business_name') }}, an eye-care and optical services provider in Ghana.">
-    <x-page-header title="About {{ $site->get('business_name') }}" eyebrow="About us" intro="{{ $site->get('tagline') }}." />
+<x-layouts.public title="About us" :description="'Learn about '.($site->get('business_name')).', an eye-care and optical services provider in Ghana.'">
+    <x-page-header :title="'About '.($site->get('business_name'))" eyebrow="About us" :intro="$site->get('tagline') ? $site->get('tagline').'.' : null" />
 
     <section class="container-page grid gap-12 py-16 lg:grid-cols-3">
         <div class="space-y-6 lg:col-span-2">
@@ -27,10 +27,19 @@
             </div>
 
             <h2 class="font-display pt-4 text-2xl font-bold">Our team</h2>
-            <p>Practitioner and team profiles will be published here only with each person's approval and verified qualifications.</p>
+            @if ($team->isNotEmpty())
+                <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                    @foreach ($team as $member)
+                        <x-practitioner-card :name="$member->name" :role="$member->job_title" :qualifications="$member->qualifications" :bio="$member->bio" :image="\App\Services\ImageUploader::url($member->image_path)" />
+                    @endforeach
+                </div>
+            @else
+                <p>Practitioner and team profiles will be published here only with each person's approval and verified qualifications.</p>
+            @endif
         </div>
         <aside class="space-y-6">
-            <img src="{{ asset('images/placeholder-service.svg') }}" alt="" class="w-full rounded-2xl" loading="lazy">
+            @php($aboutImage = \App\Models\Media::where('path', $site->get('about_image_path'))->first())
+            <img src="{{ $aboutImage?->url() ?? asset('images/placeholder-service.svg') }}" alt="{{ $aboutImage?->alt_text ?? '' }}" class="w-full rounded-2xl object-cover" loading="lazy">
             <div class="card p-6">
                 <h2 class="text-lg font-semibold">Visit us</h2>
                 <p class="mt-2 text-sm">Find opening hours, directions and services for each branch.</p>

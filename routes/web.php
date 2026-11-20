@@ -134,6 +134,8 @@ Route::middleware(['auth', 'staff'])->prefix('admin')->name('admin.')->group(fun
         Route::resource('article-categories', Admin\ArticleCategoryController::class)->except(['show', 'create', 'edit'])->parameters(['article-categories' => 'articleCategory']);
     });
 
+    Route::resource('team', Admin\TeamMemberController::class)->except('show')->middleware('can:team.manage');
+
     Route::middleware('can:media.manage')->group(function () {
         Route::get('/media', [Admin\MediaController::class, 'index'])->name('media.index');
         Route::post('/media', [Admin\MediaController::class, 'store'])->name('media.store');

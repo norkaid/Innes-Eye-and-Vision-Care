@@ -1,4 +1,4 @@
-<x-layouts.public title="Eye-care services" description="Explore the eye-care services offered by {{ $site->get('business_name') }}, and request an appointment online.">
+<x-layouts.public title="Eye-care services" :description="'Explore the eye-care services offered by '.($site->get('business_name')).', and request an appointment online.'">
     <x-page-header title="Eye-care services" eyebrow="Services" intro="Find out what each service involves and which branches offer it, then request an appointment.">
         <form method="GET" action="{{ route('services.index') }}" class="mt-8 grid gap-3 rounded-2xl bg-white p-4 shadow-sm sm:grid-cols-[1fr_auto_auto]" role="search" aria-label="Filter services">
             <div>

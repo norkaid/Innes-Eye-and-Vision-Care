@@ -16,6 +16,7 @@
             ['admin.categories.index', 'Product categories', 'tag', 'products.manage', 'admin.categories.*'],
             ['admin.branches.index', 'Branches', 'building', 'branches.manage', 'admin.branches.*'],
             ['admin.articles.index', 'Health articles', 'book', 'articles.manage', 'admin.articles.*'],
+            ['admin.team.index', 'Team profiles', 'user', 'team.manage', 'admin.team.*'],
             ['admin.media.index', 'Media library', 'image', 'media.manage', 'admin.media.*'],
         ],
         'Administration' => [

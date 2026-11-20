@@ -1,4 +1,4 @@
-<x-layouts.public title="Frames, sunglasses & lenses" description="Browse optical frames, sunglasses, contact lenses and lenses at {{ $site->get('business_name') }}. Enquire about availability at your branch.">
+<x-layouts.public title="Frames, sunglasses & lenses" :description="'Browse optical frames, sunglasses, contact lenses and lenses at '.($site->get('business_name')).'. Enquire about availability at your branch.'">
     <x-page-header title="Optical catalogue" eyebrow="Frames & lenses" tone="sand" intro="Browse our optical range. Availability can vary by branch – send us an enquiry and we will let you know." />
 
     <section class="container-page py-12">

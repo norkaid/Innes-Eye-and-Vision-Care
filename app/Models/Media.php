@@ -68,8 +68,15 @@ class Media extends Model
         foreach (HealthArticle::withTrashed()->where('featured_image_path', $this->path)->pluck('title') as $title) {
             $uses[] = "Article: {$title}";
         }
-        if (BusinessSetting::where('key', 'logo_path')->where('value', $this->path)->exists()) {
-            $uses[] = 'Website logo';
+        foreach (Branch::withTrashed()->where('image_path', $this->path)->pluck('name') as $name) {
+            $uses[] = "Branch: {$name}";
+        }
+        foreach (TeamMember::where('image_path', $this->path)->pluck('name') as $name) {
+            $uses[] = "Team profile: {$name}";
+        }
+        $settingLabels = ['logo_path' => 'Website logo', 'hero_image_path' => 'Home page main picture', 'about_image_path' => 'About page picture'];
+        foreach (BusinessSetting::whereIn('key', array_keys($settingLabels))->where('value', $this->path)->pluck('key') as $key) {
+            $uses[] = $settingLabels[$key];
         }
 
         return $uses;

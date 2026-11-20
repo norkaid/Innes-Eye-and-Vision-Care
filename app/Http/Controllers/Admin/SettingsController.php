@@ -23,7 +23,7 @@ class SettingsController extends Controller
     public function update(Request $request, Settings $settings, AuditLogger $audit, ImageUploader $images)
     {
         $section = $request->input('section');
-        abort_unless(in_array($section, ['general', 'logo', 'system'], true), 422);
+        abort_unless(in_array($section, ['general', 'logo', 'images', 'system'], true), 422);
         $this->authorize($section === 'system' ? 'settings.system' : 'settings.general');
 
         if ($section === 'logo') {
@@ -44,6 +44,25 @@ class SettingsController extends Controller
             $audit->log('settings.updated', null, ['section' => 'logo']);
 
             return redirect()->route('admin.settings.edit')->with('success', $path ? 'Logo saved.' : 'Logo removed; the standard logo is shown.');
+        }
+
+        if ($section === 'images') {
+            $choice = ['nullable', function (string $attribute, mixed $value, \Closure $fail) {
+                if ($value !== 'none' && ! Media::whereKey($value)->exists()) {
+                    $fail('Choose an image from the media library.');
+                }
+            }];
+            $data = $request->validate(['hero_image' => $choice, 'about_image' => $choice]);
+            $paths = [];
+            foreach (['hero_image' => 'hero_image_path', 'about_image' => 'about_image_path'] as $field => $key) {
+                if (array_key_exists($field, $data) && $data[$field] !== null) {
+                    $paths[$key] = $data[$field] === 'none' ? null : Media::whereKey($data[$field])->value('path');
+                }
+            }
+            $settings->put($paths);
+            $audit->log('settings.updated', null, ['section' => 'images', 'keys' => array_keys($paths)]);
+
+            return redirect()->route('admin.settings.edit')->with('success', 'Website images saved.');
         }
 
         if ($section === 'general') {

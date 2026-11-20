@@ -66,6 +66,23 @@
             </form>
         @endcan
 
+        @can('settings.general')
+            @php($library = \App\Models\Media::latest()->limit(60)->get())
+            <form method="POST" action="{{ route('admin.settings.update') }}" class="card space-y-5 p-6" novalidate>
+                @csrf @method('PUT')
+                <input type="hidden" name="section" value="images">
+                <h2 class="text-lg font-semibold">Website images</h2>
+                <p class="text-sm">Choose pictures from the <a href="{{ route('admin.media.index') }}">media library</a> (upload them there first). The description (alt text) saved with each picture is used for screen readers.</p>
+                @if ($library->isEmpty())
+                    <p class="text-sm italic">The media library is empty. Upload pictures there first.</p>
+                @else
+                    <x-admin.media-picker name="hero_image" label="Home page main picture" :current="$values['hero_image_path'] ?? null" :items="$library" hint="Shown next to the headline at the top of the home page. A landscape photo works best." />
+                    <x-admin.media-picker name="about_image" label="About page picture" :current="$values['about_image_path'] ?? null" :items="$library" hint="Shown beside the company background, e.g. a photo of the clinic." />
+                    <button class="btn-primary" type="submit">Save website images</button>
+                @endif
+            </form>
+        @endcan
+
         @can('settings.system')
             <form method="POST" action="{{ route('admin.settings.update') }}" class="card space-y-5 p-6" novalidate>
                 @csrf @method('PUT')

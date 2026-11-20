@@ -51,7 +51,7 @@ php artisan key:generate
 nano .env
 ```
 
-Set at least these values in `.env` (`Ctrl+O` to save, `Ctrl+X` to exit):
+Set at least these values in `.env` (`Ctrl+O` to save, `Ctrl+X` to exit). The example file is set up for a PC (SQLite): **replace** the line `DB_CONNECTION=sqlite` with the MySQL lines below, and make sure each `DB_` setting appears only once without a `#` in front:
 
 ```
 APP_ENV=production

@@ -1,7 +1,7 @@
 <x-layouts.admin title="Content transfer">
     <p class="mb-6 max-w-3xl text-sm">
         Move the website's content from one copy of the site to another, for example from your PC to the live site.
-        <strong>Included:</strong> business details and logo, media library images, branches with opening hours, services, product categories, products, article categories and health articles.
+        <strong>Included:</strong> business details and logo, media library images, branches with opening hours, services, product categories, products, article categories, health articles and team profiles.
         <strong>Never included:</strong> staff and customer accounts, appointments, enquiries and the activity log.
         You can still add and edit everything directly in the admin pages of either site.
     </p>

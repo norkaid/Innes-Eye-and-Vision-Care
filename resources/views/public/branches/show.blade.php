@@ -1,4 +1,4 @@
-<x-layouts.public :title="$branch->name" :description="'Address, opening hours and services at '.$branch->name.'.'">
+<x-layouts.public :title="$branch->name" :description="'Address, opening hours and services at '.$branch->name.'.'" :image="\App\Services\ImageUploader::url($branch->image_path)">
     <x-page-header :title="$branch->name" :intro="collect([$branch->city, $branch->region])->filter()->join(', ')">
         <x-slot:breadcrumbs><x-breadcrumbs :items="['Branches' => route('branches.index'), $branch->name => null]" /></x-slot:breadcrumbs>
         <div class="mt-6 flex flex-wrap gap-3">
@@ -9,6 +9,9 @@
 
     <section class="container-page grid gap-10 py-14 lg:grid-cols-3">
         <div class="space-y-8 lg:col-span-2">
+            @if ($branch->image_path)
+                <img src="{{ \App\Services\ImageUploader::url($branch->image_path) }}" alt="Photo of {{ $branch->name }}" class="aspect-[16/9] w-full rounded-2xl object-cover" width="800" height="450">
+            @endif
             @if ($branch->description)<div class="prose-content">{!! nl2br(e($branch->description)) !!}</div>@endif
             <div>
                 <h2 class="font-display text-2xl font-bold">Services at this branch</h2>

@@ -1,4 +1,4 @@
-<x-layouts.public title="Contact us" description="Contact {{ $site->get('business_name') }} – branch phone numbers, email and an online enquiry form.">
+<x-layouts.public title="Contact us" :description="'Contact '.($site->get('business_name')).' – branch phone numbers, email and an online enquiry form.'">
     <x-page-header title="Contact us" eyebrow="Get in touch" :intro="$site->get('response_time_note') ?: 'Send us a message and a member of our team will respond as soon as possible.'" />
 
     <section class="container-page grid gap-10 py-12 lg:grid-cols-3">
