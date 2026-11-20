@@ -43,7 +43,7 @@ A web platform for **Innes Eye & Visioncare Centre, Ghana**. It combines a publi
 | Frames & lenses `/products` | Category filter, keyword search, pagination, product detail pages with **Add to cart** (products sold online) and **Enquire about this product** |
 | Cart and checkout `/cart` | Pickup at a branch or delivery, payment by card or mobile money on Paystack's secure page, order page and emailed receipt |
 | Branches `/branches` | Photo, address, phone, opening hours, directions link and services per branch |
-| Book appointment `/appointments/book` | Shows only genuinely free times; every request is stored as **pending** with a reference such as `IEV-7KQ2MX9P` |
+| Book appointment `/appointments/book` | Shows only genuinely free times (a confirmed time is never offered again); customer chooses SMS and/or email updates; pays a **30% deposit of the GH₵ 500 consultation fee** (GH₵ 150) on Paystack; every request is stored as **pending** with a reference such as `IEV-7KQ2MX9P` |
 | Eye health `/health-resources` | Articles with categories, author, publication date and a "not a substitute for an examination" note |
 | Contact `/contact` | Contact details, branch list, enquiry form with spam protection |
 | Privacy `/privacy` | Draft privacy notice for business and legal review |
@@ -52,14 +52,16 @@ Also: `sitemap.xml`, `robots.txt`, page titles, meta descriptions, canonical URL
 
 ### Appointment requests
 
-- Available times are calculated from branch opening hours, minimum notice, the booking window, slot length, capacity per slot and existing *confirmed* appointments.
+- Available times are calculated from branch opening hours, minimum notice, the booking window and slot length. **Once a time is confirmed for someone it is never offered to new requests.**
+- **Deposit:** customers pay a share of the consultation fee online when they book (standard: **30% of GH₵ 500 = GH₵ 150**; the balance is paid at the clinic). The fee and percentage are set in Admin → Settings, and a service can have its own fee. Staff cannot confirm a request until the deposit is paid (or recorded as paid at the branch).
+- **Notifications:** customers choose **SMS and/or email**. They are told when the deposit is received and when their appointment is confirmed (with date, time, branch and balance), a new time is proposed, or it is declined or cancelled.
 - Every submission starts as **pending**. The confirmation page states clearly that the appointment is **not yet confirmed**.
 - An email acknowledgement is only mentioned if it was actually sent.
 - Staff (Receptionist, Administrator, Super Admin) confirm, propose a new time, decline, cancel, complete or mark a no-show. Confirmations are checked against opening hours and capacity inside a database transaction, so a slot cannot be double-booked. Every change is recorded in the request's history.
 
 ### Online shop and appointment payments
 
-Products marked **Sell online** can be added to a cart and paid for with Paystack (card or mobile money, in GH₵); services can have a **booking fee** that customers pay online after requesting an appointment. See [Online shop and payments](#online-shop-and-payments-paystack).
+Every published product **with a price** can be added to the cart and paid for with Paystack (card or mobile money, in GH₵); products without a price show *Enquire* instead. Appointment requests include the online deposit. See [Online shop and payments](#online-shop-and-payments-paystack).
 
 ### Customer accounts (optional, `FEATURE_CUSTOMER_ACCOUNTS`)
 
@@ -302,9 +304,9 @@ Then run `php artisan config:clear` and restart the site. Until `PAYSTACK_SECRET
 
 ### 2. Choose what can be paid for
 
-- **Products:** Admin → Products → edit → enter a **Price**, tick **Sell online**, and optionally set **Stock available online** (it goes down with each paid order; at 0 the product can no longer be bought).
+- **Products:** Admin → Products → edit → enter a **Price**. *Sell online* is ticked by default, so the product can be bought straight away; untick it only for items customers must ask about. Optionally set **Stock available online** (it goes down with each paid order; at 0 the product can no longer be bought).
 - **Delivery and pickup:** Admin → Settings → **Shop & online payments** (pickup on/off, delivery on/off, delivery fee, delivery note).
-- **Appointments:** Admin → Services → edit → **Booking fee**. Customers who request that service see **Pay booking fee** on the confirmation page, in their email and in their account. Paying does **not** confirm the appointment; staff still confirm it.
+- **Appointments:** Admin → Settings → *Appointment rules* → **Standard consultation fee** (500) and **Deposit paid online** (30%). A service can override the fee (Admin → Services → *Consultation fee for this service*). After submitting the booking form the customer goes straight to Paystack to pay the deposit; if they leave, the link in their email and the account page let them pay later. Paying does **not** confirm the appointment; staff confirm it, which sends the SMS/email. If a customer pays at the branch, use **Record deposit paid at branch** on the request.
 
 ### 3. Test a payment (test keys, no real money)
 
@@ -314,6 +316,22 @@ Add a product to the cart, check out and on the Paystack page use Paystack's tes
 
 - In the Paystack dashboard set the **Webhook URL** to `https://your-domain/paystack/webhook`. Paystack then confirms payments even if a customer closes the browser before returning. (Webhooks cannot reach `localhost`, which is fine: on your PC the return from Paystack confirms the payment.)
 - When the business is ready to take real money, replace the test keys with the **live** keys (`pk_live_…`, `sk_live_…`) in the server's `.env` and run `php artisan config:cache`.
+
+### 5. SMS notifications
+
+Set an SMS provider in `.env` (Ghana: **Arkesel** or **Hubtel**; international: **Twilio**). Register a sender ID (max 11 characters) with the provider first.
+
+```
+SMS_DRIVER=arkesel
+SMS_SENDER_ID=InnesEye
+ARKESEL_API_KEY=your-arkesel-api-key
+```
+
+For Hubtel use `SMS_DRIVER=hubtel` with `HUBTEL_CLIENT_ID` / `HUBTEL_CLIENT_SECRET`; for Twilio `SMS_DRIVER=twilio` with `TWILIO_SID`, `TWILIO_TOKEN`, `TWILIO_FROM`. Run `php artisan config:clear` after changing `.env`.
+
+With `SMS_DRIVER=log` (the default on a PC) texts are only written to `storage/logs/laravel.log`, and with `MAIL_MAILER=log` emails are too: nothing reaches customers. To **check that customers really receive messages**, go to Admin → Settings → **Check customer notifications**, enter your own email and phone number and click **Send test**. The result says whether the message was delivered or only logged. Every customer message (sent, failed, skipped or logged) is also recorded in the `notification_deliveries` table (Admin → Database).
+
+For email, set real SMTP details in `.env` (for example a Hostinger mailbox: see the Hostinger guide, or Gmail with an app password).
 
 ### How orders work
 
@@ -387,6 +405,8 @@ php artisan innes:import-content storage/app/innes-content-<date>.json.gz
 | No cart / "Add to cart" button | `PAYSTACK_SECRET_KEY` is missing from `.env` (run `php artisan config:clear` after adding it), or the product has no price, is not ticked *Sell online*, is unpublished or out of stock |
 | "The payment provider refused the request" | Wrong or mismatched Paystack keys (test and live keys mixed), or the currency is not enabled on the Paystack account |
 | Paid on Paystack but order still "Awaiting payment" | The customer closed the page before returning. Set the webhook URL (live site), or click **Check again** in Admin → Payments |
+| Customers don't receive SMS or email | `SMS_DRIVER` / `MAIL_MAILER` is `log` or missing, the provider key is wrong, or the sender ID is not approved. Use **Send test** in Admin → Settings: it shows the exact problem |
+| "The deposit for this request has not been paid yet" when confirming | The customer has not finished paying. Send them the payment link shown on the request, or use **Record deposit paid at branch** |
 
 ---
 
@@ -408,7 +428,7 @@ Code style:
 vendor/bin/pint --test
 ```
 
-The suite (139 tests) covers: public pages and draft visibility, search and filters, booking validation (past dates, closed days, lead time, slot grid, branch/service combinations, spam, rate limits), pending status, status transitions and history, capacity conflicts, the role matrix, guest and customer exclusion from admin, customer ownership, cut-off rules, CRUD for services, products, branches, articles and team profiles, upload validation and image processing, media library, website images, content transfer (including tampered files), the database viewer, the shop and Paystack payments (cart, checkout, server-side verification, tampered amounts, abandoned payments, stock, signed order links, webhook signatures, booking fees, order management and refunds), staff privilege escalation, CSRF, output escaping, no exposure of sensitive data and no committed secrets. GitHub Actions runs the suite on MySQL 8 for every push.
+The suite (147 tests) covers: public pages and draft visibility, search and filters, booking validation (past dates, closed days, lead time, slot grid, branch/service combinations, spam, rate limits), pending status, status transitions and history, capacity conflicts, the role matrix, guest and customer exclusion from admin, customer ownership, cut-off rules, CRUD for services, products, branches, articles and team profiles, upload validation and image processing, media library, website images, content transfer (including tampered files), the database viewer, the shop and Paystack payments (cart, checkout, server-side verification, tampered amounts, abandoned payments, stock, signed order links, webhook signatures, appointment deposits, order management and refunds), SMS and email notifications by customer choice, confirmed times never offered again, staff privilege escalation, CSRF, output escaping, no exposure of sensitive data and no committed secrets. GitHub Actions runs the suite on MySQL 8 for every push.
 
 ---
 
@@ -445,7 +465,8 @@ No scheduled tasks are needed. Notifications are sent immediately and their outc
 - Approved service descriptions, products and brands, prices (optional) and article content, with clinical review
 - Booking rules: slot length, capacity per slot, minimum notice, booking window, cancellation cut-off
 - Whether customer accounts are wanted (`FEATURE_CUSTOMER_ACCOUNTS`)
-- Shop: which products are sold online and at what price, stock levels, pickup/delivery options and fee, returns and refund policy, and the prescription-check process; booking fees per service and the refund policy for declined or cancelled appointments; when to switch Paystack to live keys
+- Shop: prices and stock, pickup/delivery options and fee, returns and refund policy, and the prescription-check process; consultation fees per service and the deposit refund policy for declined or cancelled appointments; when to switch Paystack to live keys
+- SMS provider (Arkesel, Hubtel or other) and approved sender ID
 - Notification wording, staff alert address, SMTP provider; whether SMS is wanted later (`NotificationService` is ready for another channel)
 - Logo and brand assets, licensed photography, company history, mission, vision and values, and team profiles (with each person's consent)
 - Privacy notice and consent wording, which need review against Ghana's Data Protection Act, 2012 (Act 843); data-retention period

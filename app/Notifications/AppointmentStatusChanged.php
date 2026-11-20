@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
+use App\Services\ShopService;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -26,6 +27,7 @@ class AppointmentStatusChanged extends Notification
             AppointmentStatus::Confirmed => $mail->greeting('Your appointment is confirmed')
                 ->line('Date and time: **'.$a->confirmed_start_at->format('l j F Y, H:i').'**')
                 ->line("Branch: {$a->branch->name}")
+                ->lineIf((bool) $a->balanceDue(), 'Balance to pay at the clinic: **'.ShopService::money($a->balanceDue()).'**')
                 ->line('If you need to change this, please contact the branch.'),
             AppointmentStatus::RescheduleProposed => $mail->greeting('We have proposed a new time')
                 ->line('Proposed date and time: **'.$a->proposed_start_at->format('l j F Y, H:i').'**')

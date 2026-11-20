@@ -29,8 +29,8 @@ class AppointmentRequestReceived extends Notification
             ->line('This is a request only – it is **not yet confirmed**. A member of our team will review it and contact you to confirm a time.');
 
         if ($this->appointment->canBePaid()) {
-            $mail->line('The booking fee for this service is **'.ShopService::money($this->appointment->amount_due).'**. You can pay it securely online:')
-                ->action('Pay booking fee', $this->appointment->paymentUrl());
+            $mail->line('To secure your request, please pay the deposit of **'.ShopService::money($this->appointment->amount_due).'** online:')
+                ->action('Pay deposit', $this->appointment->paymentUrl());
         }
 
         return $mail->line('Please do not reply with medical information by email.');

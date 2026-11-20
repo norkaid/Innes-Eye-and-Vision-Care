@@ -21,8 +21,9 @@ class AppointmentPaymentReceived extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject("Booking fee received ({$this->appointment->reference_code})")
-            ->line('We have received your payment of **'.ShopService::money($this->payment->amount())."** for appointment request **{$this->appointment->reference_code}**.")
+            ->subject("Deposit received ({$this->appointment->reference_code})")
+            ->line('We have received your deposit of **'.ShopService::money($this->payment->amount())."** for appointment request **{$this->appointment->reference_code}**.")
+            ->lineIf((bool) $this->appointment->balanceDue(), 'Balance to pay at the clinic: **'.ShopService::money($this->appointment->balanceDue()).'**.')
             ->line('Your appointment is **not yet confirmed**. Our team will contact you to confirm a time.')
             ->line("Payment reference: {$this->payment->reference}");
     }

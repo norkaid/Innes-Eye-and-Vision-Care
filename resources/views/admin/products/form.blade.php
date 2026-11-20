@@ -26,7 +26,7 @@
             </div>
             <div class="card space-y-4 p-6">
                 <h2 class="font-semibold">Online shop</h2>
-                <x-form.checkbox name="is_purchasable" label="Sell online (customers can add to cart and pay)" :checked="(bool) $product->is_purchasable" hint="Needs a price and a published product. The shop also needs Paystack keys in .env." />
+                <x-form.checkbox name="is_purchasable" label="Sell online (customers add to cart and pay)" :checked="(bool) $product->is_purchasable" hint="On by default: every published product with a price can be bought online. Untick only for items customers must ask about first." />
                 <x-form.input name="stock_quantity" type="number" min="0" label="Stock available online" :value="$product->stock_quantity" hint="Leave blank if you do not track stock. When set, it goes down with each paid order and the product cannot be bought at 0." />
             </div>
             <div class="flex gap-3"><button class="btn-primary" type="submit">Save product</button><a href="{{ route('admin.products.index') }}" class="btn-secondary">Cancel</a></div>

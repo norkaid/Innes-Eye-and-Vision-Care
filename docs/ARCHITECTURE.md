@@ -56,6 +56,9 @@ Foreign keys use `restrictOnDelete` where history must be kept (an appointment's
 - **Payables:** `Order` and `Appointment` implement `App\Contracts\Payable` (amount due from the database, `markPaid()`, return URL). Paying an order moves it to *Paid* and reduces stock (never below zero; a shortfall sets `stock_issue` for staff). Paying a booking fee sets the appointment's `payment_status` to *paid* but **never** confirms the appointment.
 - **Links without accounts:** guests reach their order page and the booking-fee page through **signed URLs**, so references cannot be used to view other people's orders.
 - **Data kept:** `payments` stores reference, amount (pesewas), status, channel and Paystack's transaction id: no card data. Refunds are made in the Paystack dashboard and recorded in the admin.
+- **Appointment deposits:** `ShopService::appointmentCharges()` takes the service's fee or the standard consultation fee and the deposit percentage from Settings. The fee, percentage and deposit are stored on the appointment when it is created, so later price changes do not affect it. `AppointmentService` refuses to confirm while the deposit is unpaid.
+- **Notifications:** `AppointmentNotifier` sends email and/or SMS according to the customer's choice (`notify_email`, `notify_sms`). `SmsService` supports log, Arkesel, Hubtel and Twilio and normalises Ghanaian numbers (e.g. `024…` → `23324…`). `NotificationService` records each attempt as sent, logged, skipped or failed and never reports a logged message as delivered.
+- **Availability:** public slots exclude any time overlapping a confirmed appointment; the capacity setting only lets staff confirm more than one person at the same time.
 - **Switches:** the shop and payment buttons only appear when `PAYSTACK_SECRET_KEY` is set and `FEATURE_SHOP` / `FEATURE_APPOINTMENT_PAYMENTS` are on.
 
 ## Local versus live database

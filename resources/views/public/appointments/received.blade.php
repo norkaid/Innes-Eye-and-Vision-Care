@@ -11,9 +11,9 @@
         @endif
         @if ($payment)
             <div class="card mx-auto mt-8 max-w-md space-y-3 p-6">
-                <h2 class="text-lg font-semibold">Booking fee: {{ \App\Services\ShopService::money($payment['amount']) }}</h2>
+                <h2 class="text-lg font-semibold">Deposit to pay: {{ \App\Services\ShopService::money($payment['amount']) }}</h2>
                 <p class="text-sm">Pay securely now by card or mobile money with Paystack.@if ($acknowledged) You can also pay later using the link in your email.@endif</p>
-                <a href="{{ $payment['url'] }}" class="btn-primary w-full"><x-icon name="check" class="h-4 w-4" /> Pay booking fee</a>
+                <a href="{{ $payment['url'] }}" class="btn-primary w-full"><x-icon name="check" class="h-4 w-4" /> Pay deposit</a>
             </div>
         @endif
         <x-alert type="warning" title="Your appointment is not yet confirmed" class="mt-8 text-left">
@@ -21,9 +21,9 @@
         </x-alert>
         <p class="mt-6">
             @if ($acknowledged)
-                An acknowledgement has been sent to the email address you provided.
+                An acknowledgement has been sent to the contact details you provided.
             @else
-                We have not sent an email acknowledgement, so please note your reference above.
+                We have not sent an acknowledgement message, so please note your reference above.
             @endif
         </p>
         <div class="mt-10 flex flex-wrap justify-center gap-3">

@@ -73,7 +73,9 @@ class AvailabilityService
                 continue;
             }
             $end = $start->copy()->addMinutes($length);
-            if ($this->overlapCount($booked, $start, $end) < $this->capacity()) {
+            // Once a time is confirmed for someone, it is never offered for new requests
+            // (staff can still confirm a second person when the capacity setting allows).
+            if ($this->overlapCount($booked, $start, $end) === 0) {
                 $slots[] = $start->format('H:i');
             }
         }

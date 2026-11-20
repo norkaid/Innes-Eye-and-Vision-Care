@@ -2,6 +2,7 @@
     @if ($stats)
         <section aria-label="Summary" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
             @isset($stats['pending'])<x-admin.stat-card label="Requests awaiting review" :value="$stats['pending']" icon="clock" :href="route('admin.appointments.index', ['status' => 'pending'])" note="Pending and reschedule requests" />@endisset
+            @if (! empty($stats['awaiting_deposit']))<x-admin.stat-card label="Waiting for deposit" :value="$stats['awaiting_deposit']" icon="card" :href="route('admin.appointments.index', ['status' => 'pending', 'payment' => 'unpaid'])" note="Cannot be confirmed until paid" />@endif
             @isset($stats['confirmed_upcoming'])<x-admin.stat-card label="Upcoming confirmed" :value="$stats['confirmed_upcoming']" icon="calendar" :href="route('admin.appointments.index', ['status' => 'confirmed'])" />@endisset
             @isset($stats['new_enquiries'])<x-admin.stat-card label="New enquiries" :value="$stats['new_enquiries']" icon="inbox" :href="route('admin.enquiries.index', ['status' => 'new'])" />@endisset
             @isset($stats['orders_to_prepare'])<x-admin.stat-card label="Paid orders to prepare" :value="$stats['orders_to_prepare']" icon="cart" :href="route('admin.orders.index', ['status' => 'paid'])" />@endisset

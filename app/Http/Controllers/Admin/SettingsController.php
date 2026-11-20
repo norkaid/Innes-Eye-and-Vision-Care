@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Media;
+use App\Notifications\TestNotification;
 use App\Services\AuditLogger;
 use App\Services\ImageUploader;
+use App\Services\NotificationService;
 use App\Services\Settings;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * General (public) details require settings.general; booking rules and notification
@@ -104,8 +108,18 @@ class SettingsController extends Controller
                 'cancellation_cutoff_hours' => ['required', 'integer', 'min:0', 'max:720'],
                 'notify_customer_emails' => ['boolean'],
                 'notify_staff_email' => ['nullable', 'email:rfc', 'max:255'],
+                'consultation_fee' => ['nullable', 'numeric', 'min:0', 'max:100000'],
+                'deposit_percent' => ['nullable', 'integer', 'min:0', 'max:100'],
+                'notify_customer_sms' => ['boolean'],
             ]);
             $data['notify_customer_emails'] = $request->boolean('notify_customer_emails');
+            $data['notify_customer_sms'] = $request->boolean('notify_customer_sms');
+            // Fields left out keep their current value.
+            foreach (['consultation_fee', 'deposit_percent'] as $key) {
+                if (! isset($data[$key])) {
+                    unset($data[$key]);
+                }
+            }
             $data = array_intersect_key($data, array_flip(Settings::SYSTEM_KEYS));
         }
 
@@ -113,5 +127,42 @@ class SettingsController extends Controller
         $audit->log('settings.updated', null, ['section' => $section, 'keys' => array_keys($data)]);
 
         return redirect()->route('admin.settings.edit')->with('success', 'Settings saved.');
+    }
+
+    /** Sends a test email and/or SMS so staff can check that customer notifications really arrive. */
+    public function test(Request $request, SmsService $sms, NotificationService $notifications)
+    {
+        $data = $request->validate([
+            'test_email' => ['nullable', 'email:rfc', 'max:255', 'required_without:test_phone'],
+            'test_phone' => ['nullable', 'string', 'max:30', 'regex:/^\+?[0-9\s\-()]{7,20}$/'],
+        ]);
+        $results = [];
+
+        if (! empty($data['test_email'])) {
+            try {
+                Notification::route('mail', $data['test_email'])->notifyNow(new TestNotification);
+                $results[] = config('mail.default') === 'log'
+                    ? 'Email written to storage/logs/laravel.log only (MAIL_MAILER=log). Set up SMTP in .env to really send emails.'
+                    : "Test email sent to {$data['test_email']}. Check the inbox (and spam folder).";
+            } catch (\Throwable $e) {
+                $results[] = 'Email failed: '.mb_substr($e->getMessage(), 0, 200);
+            }
+        }
+        if (! empty($data['test_phone'])) {
+            if (! $sms->enabled()) {
+                $results[] = 'SMS is switched off: set SMS_DRIVER and the provider keys in .env.';
+            } else {
+                try {
+                    $result = $sms->send($data['test_phone'], app(Settings::class)->get('business_name').': test message. SMS notifications are working.');
+                    $results[] = $result === 'logged'
+                        ? 'SMS written to storage/logs/laravel.log only (SMS_DRIVER=log). Choose a real provider to send texts.'
+                        : 'Test SMS sent to '.$data['test_phone'].'.';
+                } catch (\Throwable $e) {
+                    $results[] = 'SMS failed: '.mb_substr($e->getMessage(), 0, 200);
+                }
+            }
+        }
+
+        return redirect()->route('admin.settings.edit')->with('success', implode(' ', $results));
     }
 }

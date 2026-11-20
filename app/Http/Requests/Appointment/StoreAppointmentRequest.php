@@ -42,6 +42,8 @@ class StoreAppointmentRequest extends FormRequest
             'requested_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
             'requested_time' => ['required', 'date_format:H:i'],
             'customer_note' => ['nullable', 'string', 'max:500'],
+            'notify_email' => ['boolean'],
+            'notify_sms' => ['boolean'],
             'privacy_consent' => ['accepted'],
         ];
     }
@@ -98,6 +100,11 @@ class StoreAppointmentRequest extends FormRequest
     /** Only the fields a customer is allowed to supply. */
     public function appointmentData(): array
     {
-        return $this->safe()->only(['customer_name', 'customer_email', 'customer_phone', 'branch_id', 'service_id', 'requested_date', 'requested_time', 'customer_note']);
+        return $this->safe()->only(['customer_name', 'customer_email', 'customer_phone', 'branch_id', 'service_id', 'requested_date', 'requested_time', 'customer_note'])
+            + [
+                // Email is always available as a fallback if neither box is ticked.
+                'notify_email' => $this->boolean('notify_email', true) || ! $this->boolean('notify_sms', true),
+                'notify_sms' => $this->boolean('notify_sms', true),
+            ];
     }
 }

@@ -17,6 +17,7 @@ class Settings
     public const SYSTEM_KEYS = [
         'booking_lead_time_hours', 'booking_window_days', 'slot_duration_minutes', 'slot_capacity',
         'cancellation_cutoff_hours', 'notify_customer_emails', 'notify_staff_email',
+        'consultation_fee', 'deposit_percent', 'notify_customer_sms',
     ];
 
     public const GENERAL_KEYS = [

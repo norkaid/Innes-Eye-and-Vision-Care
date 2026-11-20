@@ -23,17 +23,24 @@
             @if ($appointment->payment_status !== \App\Enums\PaymentStatus::NotRequired)
                 <section class="card p-6" aria-labelledby="pay-h">
                     <div class="flex flex-wrap items-center justify-between gap-3">
-                        <h2 id="pay-h" class="text-lg font-semibold">Booking fee</h2>
+                        <h2 id="pay-h" class="text-lg font-semibold">Deposit</h2>
                         <x-status-badge :status="$appointment->payment_status" />
                     </div>
-                    <p class="mt-2 text-sm">{{ \App\Services\ShopService::money($appointment->amount_due) }}@if ($appointment->paid_at) · paid {{ $appointment->paid_at->format('j M Y, H:i') }}@endif</p>
+                    <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+                        @if ($appointment->consultation_fee)<div><dt class="font-semibold text-navy">Consultation fee</dt><dd>{{ \App\Services\ShopService::money($appointment->consultation_fee) }}</dd></div>@endif
+                        <div><dt class="font-semibold text-navy">Deposit{{ $appointment->deposit_percent ? ' ('.$appointment->deposit_percent.'%)' : '' }}</dt><dd>{{ \App\Services\ShopService::money($appointment->amount_due) }}@if ($appointment->paid_at) · paid {{ $appointment->paid_at->format('j M Y, H:i') }}@endif</dd></div>
+                        @if ($appointment->balanceDue() !== null)<div><dt class="font-semibold text-navy">Balance at clinic</dt><dd>{{ \App\Services\ShopService::money($appointment->balanceDue()) }}</dd></div>@endif
+                    </dl>
                     @if ($appointment->canBePaid())
-                        <p class="mt-2 text-sm">Payment link to send the customer if needed: <a href="{{ $appointment->paymentUrl() }}" class="break-all">{{ $appointment->paymentUrl() }}</a></p>
+                        <x-alert type="warning" class="mt-4">The deposit has not been paid, so this request cannot be confirmed yet. Payment link for the customer: <a href="{{ $appointment->paymentUrl() }}" class="break-all">{{ $appointment->paymentUrl() }}</a></x-alert>
+                        @can('appointments.manage')
+                            <x-admin.delete-button :action="route('admin.appointments.deposit', $appointment)" method="POST" label="Record deposit paid at branch" confirm="Record that the customer paid the deposit in person (cash or mobile money at the branch)?" class="btn-secondary btn-sm mt-3" />
+                        @endcan
                     @endif
                     @if ($appointment->payment_status === \App\Enums\PaymentStatus::Paid && ! $appointment->status->isOpen() && $appointment->status !== \App\Enums\AppointmentStatus::Completed)
                         @can('appointments.manage')
                             <div class="mt-4 rounded-lg bg-amber-50 p-4 text-sm">
-                                <p>This request was {{ strtolower($appointment->status->label()) }} after the fee was paid. Refund it in the Paystack dashboard if appropriate, then record it here.</p>
+                                <p>This request was {{ strtolower($appointment->status->label()) }} after the deposit was paid. Refund it in the Paystack dashboard if appropriate, then record it here.</p>
                                 <x-admin.delete-button :action="route('admin.appointments.refund', $appointment)" method="POST" label="Record refund" confirm="Have you refunded this payment in Paystack?" class="btn-secondary btn-sm mt-3" />
                             </div>
                         @endcan
@@ -44,6 +51,7 @@
                             @foreach ($attempts as $p)<li><span class="font-mono">{{ $p->reference }}</span> – {{ $p->statusLabel() }}@if ($p->channelLabel()) ({{ $p->channelLabel() }})@endif, {{ $p->created_at->format('j M Y, H:i') }}</li>@endforeach
                         </ul>
                     @endif
+                    <p class="mt-3 text-xs">Customer is notified by: {{ collect([$appointment->notify_email ? 'email' : null, $appointment->notify_sms ? 'SMS' : null])->filter()->join(' and ') }}</p>
                 </section>
             @endif
 
@@ -76,7 +84,7 @@
                                 <x-form.input name="start_time" type="time" label="Start time" :value="$appointment->requested_time ? substr($appointment->requested_time, 0, 5) : ''" step="300" hint="Confirmations are checked against opening hours and branch capacity." />
                             </div>
                             <x-form.textarea name="note" label="Internal note for the history (staff only)" rows="2" />
-                            <x-form.checkbox name="notify" label="Email the customer about this change (if email is configured)" :checked="true" />
+                            <x-form.checkbox name="notify" label="Notify the customer about this change (by SMS and/or email, as they chose)" :checked="true" />
                             <button type="submit" class="btn-primary">Save status</button>
                         </form>
                     </section>

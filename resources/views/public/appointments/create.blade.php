@@ -74,12 +74,31 @@
                         hint="Maximum 500 characters. Please do NOT include medical details such as diagnoses, medication or medical history – your optometrist will discuss these with you in person." />
                 </fieldset>
 
+                <fieldset class="space-y-3">
+                    <legend class="text-lg font-semibold text-navy">4. How should we contact you?</legend>
+                    <p class="text-sm">We send your confirmation and any changes to your appointment this way.</p>
+                    <x-form.checkbox name="notify_email" label="Email" :checked="true" />
+                    <x-form.checkbox name="notify_sms" label="SMS (text message) to my phone number" :checked="true" />
+                </fieldset>
+
+                @if ($depositsOn)
+                    <div class="rounded-2xl border border-teal/40 bg-teal-50 p-5" x-data="{ charges: @js($charges) }">
+                        <h2 class="font-semibold text-navy">Deposit</h2>
+                        <p class="mt-1 text-sm">
+                            Consultation fee <strong x-text="(charges[service] || charges.default).fee">{{ $charges['default']['fee'] }}</strong>.
+                            To book, pay a {{ $charges['default']['percent'] }}% deposit of <strong class="text-navy" x-text="(charges[service] || charges.default).deposit">{{ $charges['default']['deposit'] }}</strong> now by card or mobile money (Paystack).
+                            The balance of <span x-text="(charges[service] || charges.default).balance">{{ $charges['default']['balance'] }}</span> is paid at the clinic.
+                        </p>
+                        <p class="mt-2 text-xs">If we cannot offer you an appointment, the deposit is refunded.</p>
+                    </div>
+                @endif
+
                 <x-form.checkbox name="privacy_consent" label="I agree to the centre using these details to handle my request." :hint="null" />
                 <p class="-mt-6 pl-7 text-sm">Read our <a href="{{ route('privacy') }}">privacy notice</a>.</p>
 
                 <div class="flex flex-col gap-3 border-t border-navy/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
                     <p class="text-sm"><x-icon name="info" class="inline h-4 w-4" /> Submitting this form does <strong>not</strong> confirm an appointment.</p>
-                    <button type="submit" class="btn-primary px-6 py-3 text-base">Send appointment request</button>
+                    <button type="submit" class="btn-primary px-6 py-3 text-base">{{ $depositsOn ? 'Continue to pay deposit' : 'Send appointment request' }}</button>
                 </div>
                 @endif
             </form>
@@ -89,8 +108,9 @@
                     <h2 class="text-lg font-semibold">What happens next?</h2>
                     <ol class="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6">
                         <li>You receive a reference number for your request.</li>
+                        @if ($depositsOn)<li>You pay the {{ $charges['default']['percent'] }}% deposit securely with Paystack.</li>@endif
                         <li>Our team reviews it against the branch schedule.</li>
-                        <li>We contact you to confirm the time, or suggest another.</li>
+                        <li>We confirm the time by @if ($smsAvailable) SMS and/or @endif email, or suggest another.</li>
                     </ol>
                 </div>
                 @if (config('innes.features.customer_accounts') && ! auth()->check())

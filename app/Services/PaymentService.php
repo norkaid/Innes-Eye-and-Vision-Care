@@ -7,7 +7,6 @@ use App\Exceptions\PaymentGatewayException;
 use App\Models\Appointment;
 use App\Models\Order;
 use App\Models\Payment;
-use App\Notifications\AppointmentPaymentReceived;
 use App\Notifications\OrderPaid;
 use App\Notifications\StaffNewOrder;
 use Illuminate\Database\Eloquent\Model;
@@ -147,7 +146,7 @@ class PaymentService
             $this->notifications->toCustomer($payable->customer_email, new OrderPaid($payable), $payable);
             $this->notifications->toStaff(new StaffNewOrder($payable), $payable);
         } elseif ($payable instanceof Appointment) {
-            $this->notifications->toCustomer($payable->customer_email, new AppointmentPaymentReceived($payable, $payment), $payable);
+            app(AppointmentNotifier::class)->depositPaid($payable, $payment);
         }
     }
 }
