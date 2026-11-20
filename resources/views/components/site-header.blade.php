@@ -1,4 +1,6 @@
 @php
+    $shopOn = app(\App\Services\ShopService::class)->enabled();
+    $cartCount = $shopOn ? app(\App\Services\CartService::class)->count() : 0;
     $nav = [
         ['label' => 'Home', 'route' => 'home', 'match' => 'home'],
         ['label' => 'About', 'route' => 'about', 'match' => 'about'],
@@ -28,6 +30,12 @@
         </nav>
 
         <div class="hidden items-center gap-3 lg:flex">
+            @if ($shopOn)
+                <a href="{{ route('shop.cart') }}" class="btn-text relative text-sm" @if (request()->routeIs('shop.*')) aria-current="page" @endif>
+                    <x-icon name="cart" class="h-5 w-5" /><span class="sr-only">Cart,</span>
+                    <span class="rounded-full bg-teal px-1.5 text-xs font-bold text-white">{{ $cartCount }}</span><span class="sr-only">items</span>
+                </a>
+            @endif
             @auth
                 <a href="{{ auth()->user()->isStaff() ? route('admin.dashboard') : route('account.index') }}" class="btn-text text-sm">
                     <x-icon name="user" class="h-4 w-4" /> {{ auth()->user()->isStaff() ? 'Dashboard' : 'My account' }}
@@ -38,6 +46,11 @@
             <a href="{{ route('appointments.create') }}" class="btn-primary"><x-icon name="calendar" class="h-4 w-4" /> Book Appointment</a>
         </div>
 
+        @if ($shopOn)
+            <a href="{{ route('shop.cart') }}" class="ml-auto inline-flex items-center gap-1 rounded-md p-2 font-semibold text-navy no-underline lg:hidden">
+                <x-icon name="cart" class="h-6 w-6" /><span class="sr-only">Cart,</span><span class="rounded-full bg-teal px-1.5 text-xs font-bold text-white">{{ $cartCount }}</span><span class="sr-only">items</span>
+            </a>
+        @endif
         <button type="button" class="inline-flex items-center gap-2 rounded-md p-2 text-navy lg:hidden" @click="open = !open"
                 :aria-expanded="open.toString()" aria-controls="mobile-nav" aria-expanded="false">
             <span class="sr-only" x-text="open ? 'Close menu' : 'Open menu'">Open menu</span>

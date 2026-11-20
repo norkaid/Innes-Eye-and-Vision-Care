@@ -36,6 +36,8 @@ appointments ─< appointment_status_histories
 product_categories ─< products ─< enquiries ─< enquiry_notes
 article_categories ─< health_articles >─ users (author)
 media ─ media_contents (1:1, image bytes)
+orders ─< order_items >─ products        orders >─ branches (pickup), users (customer)
+payments >─ payable (orders | appointments)
 team_members
 business_settings, audit_logs, notification_deliveries
 
@@ -46,6 +48,15 @@ media/products/<random>.jpg.
 ```
 
 Foreign keys use `restrictOnDelete` where history must be kept (an appointment's branch and service), and `nullOnDelete` / `cascadeOnDelete` elsewhere. Services, products, branches, articles and users use soft deletes ("archive"). Indexes cover status, dates, reference codes, slugs and filter columns. Status columns are strings validated by PHP enums, which keeps migrations portable.
+
+## Shop and payments
+
+- **Flow:** cart (product ids and quantities in the session) → checkout (`CheckoutRequest`) → an `Order` with items is created in a transaction with the product rows locked, using **database prices only** → `PaymentService::start()` creates a `Payment` and calls Paystack's *initialize* endpoint → the customer pays on Paystack's hosted page → Paystack redirects to `/payments/callback` and also posts to `/paystack/webhook`.
+- **Verification:** `PaymentService::confirm()` always calls Paystack's *verify* endpoint with the secret key and only marks the payment successful when the status is `success` **and** the amount, currency and reference match the stored payment. It locks the payment row, so the redirect and the webhook arriving together cannot apply a payment twice. Webhooks must carry a valid `x-paystack-signature` (HMAC SHA-512 of the body) and are exempt from CSRF only for that reason.
+- **Payables:** `Order` and `Appointment` implement `App\Contracts\Payable` (amount due from the database, `markPaid()`, return URL). Paying an order moves it to *Paid* and reduces stock (never below zero; a shortfall sets `stock_issue` for staff). Paying a booking fee sets the appointment's `payment_status` to *paid* but **never** confirms the appointment.
+- **Links without accounts:** guests reach their order page and the booking-fee page through **signed URLs**, so references cannot be used to view other people's orders.
+- **Data kept:** `payments` stores reference, amount (pesewas), status, channel and Paystack's transaction id: no card data. Refunds are made in the Paystack dashboard and recorded in the admin.
+- **Switches:** the shop and payment buttons only appear when `PAYSTACK_SECRET_KEY` is set and `FEATURE_SHOP` / `FEATURE_APPOINTMENT_PAYMENTS` are on.
 
 ## Local versus live database
 

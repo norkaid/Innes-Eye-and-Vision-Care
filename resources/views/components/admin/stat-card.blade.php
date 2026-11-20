@@ -3,7 +3,7 @@
     <div class="flex items-start justify-between gap-3">
         <div>
             <p class="text-sm font-semibold">{{ $label }}</p>
-            <p class="mt-1 text-3xl font-bold text-navy">{{ number_format($value) }}</p>
+            <p class="mt-1 text-3xl font-bold text-navy">{{ is_numeric($value) ? number_format($value) : $value }}</p>
             @if ($note)<p class="mt-1 text-xs">{{ $note }}</p>@endif
         </div>
         <span class="rounded-lg bg-sky p-2 text-teal-700"><x-icon :name="$icon" /></span>

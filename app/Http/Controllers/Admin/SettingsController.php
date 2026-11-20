@@ -23,7 +23,7 @@ class SettingsController extends Controller
     public function update(Request $request, Settings $settings, AuditLogger $audit, ImageUploader $images)
     {
         $section = $request->input('section');
-        abort_unless(in_array($section, ['general', 'logo', 'images', 'system'], true), 422);
+        abort_unless(in_array($section, ['general', 'logo', 'images', 'shop', 'system'], true), 422);
         $this->authorize($section === 'system' ? 'settings.system' : 'settings.general');
 
         if ($section === 'logo') {
@@ -44,6 +44,20 @@ class SettingsController extends Controller
             $audit->log('settings.updated', null, ['section' => 'logo']);
 
             return redirect()->route('admin.settings.edit')->with('success', $path ? 'Logo saved.' : 'Logo removed; the standard logo is shown.');
+        }
+
+        if ($section === 'shop') {
+            $data = $request->validate([
+                'shop_delivery_fee' => ['nullable', 'numeric', 'min:0', 'max:10000'],
+                'shop_delivery_note' => ['nullable', 'string', 'max:300'],
+            ]);
+            $data['shop_pickup_enabled'] = $request->boolean('shop_pickup_enabled');
+            $data['shop_delivery_enabled'] = $request->boolean('shop_delivery_enabled');
+            $data['shop_delivery_fee'] = round((float) ($data['shop_delivery_fee'] ?? 0), 2);
+            $settings->put(array_intersect_key($data, array_flip(Settings::SHOP_KEYS)));
+            $audit->log('settings.updated', null, ['section' => 'shop']);
+
+            return redirect()->route('admin.settings.edit')->with('success', 'Shop settings saved.');
         }
 
         if ($section === 'images') {

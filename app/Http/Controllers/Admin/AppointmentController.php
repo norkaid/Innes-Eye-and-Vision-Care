@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\AppointmentStatus;
+use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\Branch;
 use App\Models\Service;
 use App\Services\AppointmentService;
+use App\Services\AuditLogger;
 use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -83,5 +85,16 @@ class AppointmentController extends Controller
         $service->updateStaffNote($appointment, $data['staff_note'] ?? null, $request->user());
 
         return back()->with('success', 'Internal note saved.');
+    }
+
+    /** Records that the booking fee was returned (the refund itself is made in the Paystack dashboard). */
+    public function refund(Appointment $appointment, AuditLogger $audit)
+    {
+        abort_unless($appointment->payment_status === PaymentStatus::Paid, 422);
+        $appointment->payment_status = PaymentStatus::Refunded;
+        $appointment->save();
+        $audit->log('appointment.refund_recorded', $appointment, ['reference' => $appointment->reference_code]);
+
+        return back()->with('success', 'Refund recorded.');
     }
 }

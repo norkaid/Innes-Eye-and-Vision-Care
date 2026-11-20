@@ -21,8 +21,13 @@
             <div class="card space-y-4 p-6">
                 <h2 class="font-semibold">Publishing</h2>
                 <x-form.checkbox name="is_published" label="Published in the catalogue" :checked="(bool) $product->is_published" />
-                <x-form.select name="availability_status" label="Availability label" required :options="\App\Enums\ProductAvailability::options()" :value="$product->availability_status" hint="A label only – the system does not track stock." />
-                <x-form.input name="price" type="number" step="0.01" min="0" label="Price (GH₵)" :value="$product->price" hint="Leave blank unless the centre has approved a price for display." />
+                <x-form.select name="availability_status" label="Availability label" required :options="\App\Enums\ProductAvailability::options()" :value="$product->availability_status" hint="Shown when the product is not sold online." />
+                <x-form.input name="price" type="number" step="0.01" min="0" label="Price (GH₵)" :value="$product->price" hint="Leave blank unless the centre has approved a price. Required to sell online." />
+            </div>
+            <div class="card space-y-4 p-6">
+                <h2 class="font-semibold">Online shop</h2>
+                <x-form.checkbox name="is_purchasable" label="Sell online (customers can add to cart and pay)" :checked="(bool) $product->is_purchasable" hint="Needs a price and a published product. The shop also needs Paystack keys in .env." />
+                <x-form.input name="stock_quantity" type="number" min="0" label="Stock available online" :value="$product->stock_quantity" hint="Leave blank if you do not track stock. When set, it goes down with each paid order and the product cannot be bought at 0." />
             </div>
             <div class="flex gap-3"><button class="btn-primary" type="submit">Save product</button><a href="{{ route('admin.products.index') }}" class="btn-secondary">Cancel</a></div>
         </div>

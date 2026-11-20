@@ -14,6 +14,17 @@ return [
     |
     */
 
+    /*
+    | Paystack (card and mobile money payments). Test keys start with pk_test_ / sk_test_.
+    | The secret key is only ever used on the server; never commit it.
+    */
+    'paystack' => [
+        'public_key' => env('PAYSTACK_PUBLIC_KEY'),
+        'secret_key' => env('PAYSTACK_SECRET_KEY'),
+        'base_url' => env('PAYSTACK_BASE_URL', 'https://api.paystack.co'),
+        'currency' => env('PAYSTACK_CURRENCY', 'GHS'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

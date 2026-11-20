@@ -91,6 +91,7 @@ class ServiceController extends Controller
             'short_description' => ['required', 'string', 'max:300'],
             'description' => ['nullable', 'string', 'max:10000'],
             'preparation' => ['nullable', 'string', 'max:5000'],
+            'booking_fee' => ['nullable', 'numeric', 'min:0', 'max:100000'],
             'display_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'is_published' => ['boolean'],
             'branches' => ['array'],

@@ -104,6 +104,17 @@ php artisan route:cache
 php artisan view:cache
 ```
 
+### Online payments (Paystack)
+
+Add the Paystack keys to `.env` (test keys while testing, live keys when the business is ready to take real money):
+
+```
+PAYSTACK_PUBLIC_KEY=pk_live_...
+PAYSTACK_SECRET_KEY=sk_live_...
+```
+
+In the Paystack dashboard (**Settings → API Keys & Webhooks**) set the **Webhook URL** to `https://example.com/paystack/webhook` and the **Callback URL** can be left empty (the site sends its own). Run `php artisan config:cache` after changing `.env`.
+
 ## 4. Point the domain at Laravel's `public` folder
 
 The website must be served from `innes/public`, never from the project root (that would expose `.env`).

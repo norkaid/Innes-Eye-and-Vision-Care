@@ -20,6 +20,33 @@
                 </dl>
             </section>
 
+            @if ($appointment->payment_status !== \App\Enums\PaymentStatus::NotRequired)
+                <section class="card p-6" aria-labelledby="pay-h">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <h2 id="pay-h" class="text-lg font-semibold">Booking fee</h2>
+                        <x-status-badge :status="$appointment->payment_status" />
+                    </div>
+                    <p class="mt-2 text-sm">{{ \App\Services\ShopService::money($appointment->amount_due) }}@if ($appointment->paid_at) · paid {{ $appointment->paid_at->format('j M Y, H:i') }}@endif</p>
+                    @if ($appointment->canBePaid())
+                        <p class="mt-2 text-sm">Payment link to send the customer if needed: <a href="{{ $appointment->paymentUrl() }}" class="break-all">{{ $appointment->paymentUrl() }}</a></p>
+                    @endif
+                    @if ($appointment->payment_status === \App\Enums\PaymentStatus::Paid && ! $appointment->status->isOpen() && $appointment->status !== \App\Enums\AppointmentStatus::Completed)
+                        @can('appointments.manage')
+                            <div class="mt-4 rounded-lg bg-amber-50 p-4 text-sm">
+                                <p>This request was {{ strtolower($appointment->status->label()) }} after the fee was paid. Refund it in the Paystack dashboard if appropriate, then record it here.</p>
+                                <x-admin.delete-button :action="route('admin.appointments.refund', $appointment)" method="POST" label="Record refund" confirm="Have you refunded this payment in Paystack?" class="btn-secondary btn-sm mt-3" />
+                            </div>
+                        @endcan
+                    @endif
+                    @php($attempts = $appointment->payments)
+                    @if ($attempts->isNotEmpty())
+                        <ul class="mt-4 space-y-1 text-xs">
+                            @foreach ($attempts as $p)<li><span class="font-mono">{{ $p->reference }}</span> – {{ $p->statusLabel() }}@if ($p->channelLabel()) ({{ $p->channelLabel() }})@endif, {{ $p->created_at->format('j M Y, H:i') }}</li>@endforeach
+                        </ul>
+                    @endif
+                </section>
+            @endif
+
             @can('appointments.manage')
                 @if ($transitions)
                     <section class="card p-6" x-data="{ status: @js(old('status', '')) }" aria-labelledby="action-h">

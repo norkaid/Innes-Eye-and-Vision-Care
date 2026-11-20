@@ -2,15 +2,19 @@
 
 namespace App\Models;
 
+use App\Contracts\Payable;
 use App\Enums\AppointmentStatus;
+use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\URL;
 
-class Appointment extends Model
+class Appointment extends Model implements Payable
 {
     use HasFactory;
 
@@ -34,6 +38,9 @@ class Appointment extends Model
             'confirmed_end_at' => 'datetime',
             'status_updated_at' => 'datetime',
             'status' => AppointmentStatus::class,
+            'payment_status' => PaymentStatus::class,
+            'amount_due' => 'decimal:2',
+            'paid_at' => 'datetime',
         ];
     }
 
@@ -97,5 +104,51 @@ class Appointment extends Model
             ->orWhere('customer_name', 'like', $like)
             ->orWhere('customer_email', 'like', $like)
             ->orWhere('customer_phone', 'like', $like));
+    }
+
+    public function payments(): MorphMany
+    {
+        return $this->morphMany(Payment::class, 'payable')->latest();
+    }
+
+    /** Payment is possible while the fee is unpaid and the request is still open. */
+    public function canBePaid(): bool
+    {
+        return $this->payment_status === PaymentStatus::Unpaid && $this->status->isOpen() && (float) $this->amount_due > 0;
+    }
+
+    /** Link to the payment page that works without signing in (signed, cannot be guessed). */
+    public function paymentUrl(): string
+    {
+        return URL::signedRoute('appointments.pay', $this);
+    }
+
+    // Payable
+
+    public function amountDueMinor(): int
+    {
+        return $this->canBePaid() ? (int) round((float) $this->amount_due * 100) : 0;
+    }
+
+    public function paymentEmail(): string
+    {
+        return $this->customer_email;
+    }
+
+    public function paymentDescription(): string
+    {
+        return 'Appointment fee '.$this->reference_code;
+    }
+
+    public function markPaid(Payment $payment): void
+    {
+        $this->payment_status = PaymentStatus::Paid;
+        $this->paid_at = $payment->paid_at ?? now();
+        $this->save();
+    }
+
+    public function paymentReturnUrl(): string
+    {
+        return $this->paymentUrl();
     }
 }

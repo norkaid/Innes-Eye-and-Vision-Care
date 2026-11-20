@@ -10,6 +10,7 @@ use App\Services\AuditLogger;
 use App\Services\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class ProductController extends Controller
 {
@@ -93,10 +94,16 @@ class ProductController extends Controller
             'description' => ['nullable', 'string', 'max:10000'],
             'price' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'availability_status' => ['required', Rule::enum(ProductAvailability::class)],
+            'is_purchasable' => ['boolean'],
+            'stock_quantity' => ['nullable', 'integer', 'min:0', 'max:100000'],
             'is_published' => ['boolean'],
             ...ImageUploader::fieldRules(),
         ]);
         $data['is_published'] = $request->boolean('is_published');
+        $data['is_purchasable'] = $request->boolean('is_purchasable');
+        if ($data['is_purchasable'] && ! ((float) ($data['price'] ?? 0) > 0)) {
+            throw ValidationException::withMessages(['price' => 'Enter a price to sell this product online.']);
+        }
 
         return $data;
     }

@@ -49,6 +49,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('contact', fn (Request $r) => [Limit::perMinute(5)->by($r->ip()), Limit::perHour(20)->by($r->ip())]);
         RateLimiter::for('login', fn (Request $r) => Limit::perMinute(10)->by($r->ip()));
         RateLimiter::for('register', fn (Request $r) => Limit::perHour(10)->by($r->ip()));
+        RateLimiter::for('checkout', fn (Request $r) => [Limit::perMinute(6)->by($r->ip()), Limit::perHour(30)->by($r->ip())]);
         RateLimiter::for('password-reset', fn (Request $r) => Limit::perMinute(5)->by($r->ip()));
 
         Paginator::defaultView('components.pagination');

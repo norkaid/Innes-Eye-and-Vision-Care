@@ -8,6 +8,8 @@
         'Front desk' => [
             ['admin.appointments.index', 'Appointments', 'calendar', 'appointments.view', 'admin.appointments.*'],
             ['admin.enquiries.index', 'Enquiries', 'inbox', 'enquiries.view', 'admin.enquiries.*'],
+            ['admin.orders.index', 'Orders', 'cart', 'orders.view', 'admin.orders.*'],
+            ['admin.payments.index', 'Payments', 'card', 'payments.view', 'admin.payments.*'],
             ['admin.customers.index', 'Customers', 'users', 'customers.view', 'admin.customers.*'],
         ],
         'Website content' => [

@@ -35,6 +35,27 @@ Route::post('/appointments', [Public\AppointmentController::class, 'store'])->mi
 Route::get('/appointments/received', [Public\AppointmentController::class, 'received'])->name('appointments.received');
 Route::get('/appointments/availability', [Public\AppointmentController::class, 'availability'])->middleware('throttle:60,1')->name('appointments.availability');
 
+/*
+| Shop and online payments (Paystack)
+*/
+Route::middleware('shop')->group(function () {
+    Route::get('/cart', [Public\ShopController::class, 'cart'])->name('shop.cart');
+    Route::post('/cart', [Public\ShopController::class, 'add'])->name('shop.cart.add');
+    Route::patch('/cart', [Public\ShopController::class, 'update'])->name('shop.cart.update');
+    Route::delete('/cart/{product}', [Public\ShopController::class, 'remove'])->whereNumber('product')->name('shop.cart.remove');
+    Route::get('/checkout', [Public\ShopController::class, 'checkout'])->name('shop.checkout');
+    Route::post('/checkout', [Public\ShopController::class, 'placeOrder'])->middleware('throttle:checkout')->name('shop.checkout.store');
+});
+// Signed links (sent by email / shown after checkout) – work without signing in, cannot be guessed.
+Route::middleware('signed')->group(function () {
+    Route::get('/orders/{order}', [Public\OrderController::class, 'show'])->name('shop.orders.show');
+    Route::post('/orders/{order}/pay', [Public\OrderController::class, 'pay'])->middleware('throttle:checkout')->name('shop.orders.pay');
+    Route::get('/appointments/{appointment}/pay', [Public\AppointmentPaymentController::class, 'show'])->name('appointments.pay');
+    Route::post('/appointments/{appointment}/pay', [Public\AppointmentPaymentController::class, 'pay'])->middleware('throttle:checkout')->name('appointments.pay.start');
+});
+Route::get('/payments/callback', [Public\PaymentController::class, 'callback'])->middleware('throttle:30,1')->name('payments.callback');
+Route::post('/paystack/webhook', [Public\PaymentController::class, 'webhook'])->middleware('throttle:120,1')->name('paystack.webhook');
+
 // Media library images, stored in the database.
 Route::get('/media/{path}', Public\MediaFileController::class)->where('path', '[a-z]+/[A-Za-z0-9]+\.[a-z0-9]+')->name('media.file');
 
@@ -80,6 +101,7 @@ Route::middleware(['auth', 'customer.accounts', 'customer'])->prefix('account')-
     Route::post('/appointments/{appointment}/request-reschedule', [Customer\AppointmentController::class, 'reschedule'])->name('appointments.reschedule');
 
     Route::get('/enquiries', [Customer\AccountController::class, 'enquiries'])->name('enquiries');
+    Route::get('/orders', [Customer\AccountController::class, 'orders'])->name('orders');
 });
 
 /*
@@ -95,6 +117,20 @@ Route::middleware(['auth', 'staff'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/appointments/{appointment}', [Admin\AppointmentController::class, 'show'])->name('appointments.show');
         Route::patch('/appointments/{appointment}', [Admin\AppointmentController::class, 'update'])->middleware('can:appointments.manage')->name('appointments.update');
         Route::patch('/appointments/{appointment}/note', [Admin\AppointmentController::class, 'note'])->middleware('can:appointments.manage')->name('appointments.note');
+        Route::post('/appointments/{appointment}/refund', [Admin\AppointmentController::class, 'refund'])->middleware('can:appointments.manage')->name('appointments.refund');
+    });
+
+    Route::middleware('can:orders.view')->group(function () {
+        Route::get('/orders', [Admin\OrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}', [Admin\OrderController::class, 'show'])->name('orders.show');
+        Route::patch('/orders/{order}', [Admin\OrderController::class, 'update'])->middleware('can:orders.manage')->name('orders.update');
+        Route::patch('/orders/{order}/note', [Admin\OrderController::class, 'note'])->middleware('can:orders.manage')->name('orders.note');
+        Route::post('/orders/{order}/refund', [Admin\OrderController::class, 'refund'])->middleware('can:orders.manage')->name('orders.refund');
+    });
+
+    Route::middleware('can:payments.view')->group(function () {
+        Route::get('/payments', [Admin\PaymentController::class, 'index'])->name('payments.index');
+        Route::post('/payments/{payment}/recheck', [Admin\PaymentController::class, 'recheck'])->name('payments.recheck');
     });
 
     Route::middleware('can:customers.view')->group(function () {

@@ -25,7 +25,7 @@
                             <td>{{ $a->service->name }}<span class="block text-xs">{{ $a->branch->name }}</span></td>
                             <td>{{ $a->requestedStart()->format('D j M Y, H:i') }}</td>
                             <td>{{ $a->confirmed_start_at?->format('D j M, H:i') ?? '—' }}</td>
-                            <td><x-status-badge :status="$a->status" size="sm" /></td>
+                            <td><div class="flex flex-col items-start gap-1"><x-status-badge :status="$a->status" size="sm" />@if ($a->payment_status === \App\Enums\PaymentStatus::Paid)<x-status-badge :status="$a->payment_status" size="sm" />@endif</div></td>
                         </tr>
                     @endforeach
                 </tbody>

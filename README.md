@@ -19,14 +19,15 @@ A web platform for **Innes Eye & Visioncare Centre, Ghana**. It combines a publi
 2. [Roles](#roles)
 3. [Set up the system on your PC](#set-up-the-system-on-your-pc)
 4. [Everyday use on your PC](#everyday-use-on-your-pc)
-5. [Images and the media library](#images-and-the-media-library)
-6. [Viewing the database](#viewing-the-database)
-7. [Moving your content to the live site](#moving-your-content-to-the-live-site)
-8. [Troubleshooting](#troubleshooting)
-9. [Tests](#tests)
-10. [Deployment](#deployment)
-11. [Backups and recovery](#backups-and-recovery)
-12. [Decisions still needed from the business](#decisions-still-needed-from-the-business)
+5. [Online shop and payments (Paystack)](#online-shop-and-payments-paystack)
+6. [Images and the media library](#images-and-the-media-library)
+7. [Viewing the database](#viewing-the-database)
+8. [Moving your content to the live site](#moving-your-content-to-the-live-site)
+9. [Troubleshooting](#troubleshooting)
+10. [Tests](#tests)
+11. [Deployment](#deployment)
+12. [Backups and recovery](#backups-and-recovery)
+13. [Decisions still needed from the business](#decisions-still-needed-from-the-business)
 
 ---
 
@@ -39,7 +40,8 @@ A web platform for **Innes Eye & Visioncare Centre, Ghana**. It combines a publi
 | Home `/` | Main picture (chosen in Settings), introduction, featured services and products, why choose us, branches, latest articles, booking call-to-action |
 | About `/about` | Company background, mission, vision and values, team profiles, clinic picture |
 | Services `/services` | Search and branch filter; detail pages with preparation notes and the branches that offer each service |
-| Frames & lenses `/products` | Category filter, keyword search, pagination, product detail pages with **Enquire about this product** |
+| Frames & lenses `/products` | Category filter, keyword search, pagination, product detail pages with **Add to cart** (products sold online) and **Enquire about this product** |
+| Cart and checkout `/cart` | Pickup at a branch or delivery, payment by card or mobile money on Paystack's secure page, order page and emailed receipt |
 | Branches `/branches` | Photo, address, phone, opening hours, directions link and services per branch |
 | Book appointment `/appointments/book` | Shows only genuinely free times; every request is stored as **pending** with a reference such as `IEV-7KQ2MX9P` |
 | Eye health `/health-resources` | Articles with categories, author, publication date and a "not a substitute for an examination" note |
@@ -55,9 +57,13 @@ Also: `sitemap.xml`, `robots.txt`, page titles, meta descriptions, canonical URL
 - An email acknowledgement is only mentioned if it was actually sent.
 - Staff (Receptionist, Administrator, Super Admin) confirm, propose a new time, decline, cancel, complete or mark a no-show. Confirmations are checked against opening hours and capacity inside a database transaction, so a slot cannot be double-booked. Every change is recorded in the request's history.
 
+### Online shop and appointment payments
+
+Products marked **Sell online** can be added to a cart and paid for with Paystack (card or mobile money, in GH₵); services can have a **booking fee** that customers pay online after requesting an appointment. See [Online shop and payments](#online-shop-and-payments-paystack).
+
 ### Customer accounts (optional, `FEATURE_CUSTOMER_ACCOUNTS`)
 
-Register, sign in, reset password, edit profile, see own appointment requests (cancel or ask to reschedule within the cut-off) and own enquiries. Ownership is checked on the server.
+Register, sign in, reset password, edit profile, see own appointment requests (cancel, reschedule, pay the booking fee), own orders and own enquiries. Ownership is checked on the server.
 
 ### Admin dashboard `/admin`
 
@@ -66,18 +72,20 @@ Register, sign in, reset password, edit profile, see own appointment requests (c
 | Dashboard | Live counts from the database, oldest requests waiting, today's confirmed appointments, recent enquiries and activity, filtered by role |
 | Appointments | Search and filter by status, branch, service and date; confirm, propose a new time, decline, cancel, complete, no-show; private notes; full status history |
 | Enquiries | Filter, assign, set status (new / in progress / resolved / spam), private notes |
+| Orders | Shop orders with items, customer, pickup/delivery and payment attempts; move through *Paid → Being prepared → Ready for pickup / Out for delivery → Completed*, or cancel (items go back into stock); record refunds |
+| Payments | Every Paystack transaction (orders and booking fees) with result, method and totals for a date range; re-check a payment with Paystack |
 | Customers | Contact details and appointment history; edit; deactivate |
-| Services, Products, Product categories, Branches, Health articles | Create, edit, publish/unpublish, archive and restore; pictures; branch↔service links; opening hours; article draft → preview → publish |
+| Services, Products, Product categories, Branches, Health articles | Create, edit, publish/unpublish, archive and restore; pictures; branch↔service links; opening hours; article draft → preview → publish; product price, **Sell online** and optional stock; service **booking fee** |
 | Team profiles | Practitioner and staff profiles (photo, role, qualifications, short bio) shown on the About page when published |
 | Media library | Upload the logo, glasses photos and other pictures (up to 20 at once) into folders; alt text; copy links; pictures that are in use cannot be deleted |
 | Staff & roles | Create and deactivate staff, assign roles; staff cannot grant more than they have |
-| Settings | Logo; home and About pictures; business details and About text; appointment rules and notifications (Super Admin only) |
+| Settings | Logo; home and About pictures; business details and About text; shop options (pickup, delivery, delivery fee); appointment rules and notifications (Super Admin only) |
 | Reports | Date-filtered totals; CSV export contains counts only, no personal data |
 | Activity log | Audit trail of administrative actions |
 | Database | Super Admin only: read-only view of every table. Password hashes, tokens and session data are never shown |
 | Content transfer | Super Admin only: download all website content as one file and import it on another copy of the site (e.g. PC → live server) |
 
-The system deliberately does **not** include e-commerce checkout, payments, medical records, live chat or SMS.
+The system deliberately does **not** include medical records, live chat or SMS.
 
 ---
 
@@ -86,8 +94,8 @@ The system deliberately does **not** include e-commerce checkout, payments, medi
 | Role | Can use |
 |---|---|
 | Super Admin | Everything, including staff management, booking rules, Database and Content transfer |
-| Administrator | Appointments, enquiries, customers, all website content, team profiles, media, business details and images, reports, activity log |
-| Receptionist | Appointments, enquiries and the customer details needed for them |
+| Administrator | Appointments, enquiries, customers, orders, payments, all website content, team profiles, media, business details, shop settings and images, reports, activity log |
+| Receptionist | Appointments, enquiries, orders and the customer details needed for them (not the Payments list) |
 | Content Manager | Services, products, categories, articles, team profiles and media (no appointment or customer data) |
 | Customer | Own profile, own requests and enquiries |
 | Guest | Public pages and public forms |
@@ -242,6 +250,10 @@ If you prefer MySQL (for example to use MySQL Workbench):
 
 Content entered in SQLite does not move to MySQL automatically; use [Content transfer](#moving-your-content-to-the-live-site) to copy it.
 
+### Turning on payments on your PC
+
+Add your Paystack **test** keys to `.env` (see [Online shop and payments](#online-shop-and-payments-paystack)), then run `php artisan config:clear` and restart `php artisan serve`.
+
 ---
 
 ## Everyday use on your PC
@@ -266,6 +278,49 @@ Your content lives in `database\database.sqlite`. That file is **not** in Git: `
 | `php artisan migrate:fresh --seed` | **Erases everything** and reloads demo content. Do not run once you have entered real information |
 
 Back up your work by copying `database\database.sqlite` somewhere safe (stop the site and close DB Browser first).
+
+---
+
+## Online shop and payments (Paystack)
+
+Customers pay on **Paystack's own secure page** (card or mobile money, in GH₵). Card details never reach this website. The website only records the result after **checking it with Paystack on the server**.
+
+### 1. Add your Paystack keys
+
+In the Paystack dashboard go to **Settings → API Keys & Webhooks** and copy the keys into `.env`:
+
+```
+PAYSTACK_PUBLIC_KEY=pk_test_...
+PAYSTACK_SECRET_KEY=sk_test_...
+```
+
+Then run `php artisan config:clear` and restart the site. Until `PAYSTACK_SECRET_KEY` is set, the cart and payment buttons stay hidden and **Admin → Payments** shows a warning. **Never commit the secret key or paste it anywhere public.** `FEATURE_SHOP=false` or `FEATURE_APPOINTMENT_PAYMENTS=false` switch either part off.
+
+### 2. Choose what can be paid for
+
+- **Products:** Admin → Products → edit → enter a **Price**, tick **Sell online**, and optionally set **Stock available online** (it goes down with each paid order; at 0 the product can no longer be bought).
+- **Delivery and pickup:** Admin → Settings → **Shop & online payments** (pickup on/off, delivery on/off, delivery fee, delivery note).
+- **Appointments:** Admin → Services → edit → **Booking fee**. Customers who request that service see **Pay booking fee** on the confirmation page, in their email and in their account. Paying does **not** confirm the appointment; staff still confirm it.
+
+### 3. Test a payment (test keys, no real money)
+
+Add a product to the cart, check out and on the Paystack page use Paystack's test card **4084 0840 8408 4081**, any future expiry date, CVV **408**, PIN **0000** and OTP **123456** if asked. Other test cards and test mobile-money numbers are listed in Paystack's documentation under *Test Payments*. After paying you return to the order page, which shows **Payment received**, and the order appears in **Admin → Orders**.
+
+### 4. On the live site
+
+- In the Paystack dashboard set the **Webhook URL** to `https://your-domain/paystack/webhook`. Paystack then confirms payments even if a customer closes the browser before returning. (Webhooks cannot reach `localhost`, which is fine: on your PC the return from Paystack confirms the payment.)
+- When the business is ready to take real money, replace the test keys with the **live** keys (`pk_live_…`, `sk_live_…`) in the server's `.env` and run `php artisan config:cache`.
+
+### How orders work
+
+| Status | Meaning |
+|---|---|
+| Awaiting payment | Order saved, not paid yet (the customer can retry from the order page) |
+| Paid – to be prepared | Payment verified with Paystack; stock has been reduced |
+| Being prepared → Ready for pickup / Out for delivery → Completed | Set by staff in Admin → Orders |
+| Cancelled | Set by staff; paid items go back into stock. Refund the customer in the Paystack dashboard, then click **Record refund** |
+
+Prescription lenses and contact lenses need a valid prescription: the checkout tells customers the team will check it before the order is prepared.
 
 ---
 
@@ -297,7 +352,7 @@ The live site has its own, empty MySQL database: deploying copies the code, not 
 1. **On your PC:** sign in as Super Admin → **Content transfer** → **Download export file** (`innes-content-<date>.json.gz`).
 2. **On the live site:** Super Admin → **Content transfer** → choose the file → tick the confirmation → **Import content**.
 
-Copied: business details, booking rules, logo and website images, media library, branches (opening hours, services, photo), services, product categories, products, article categories, health articles and team profiles. **Never copied:** staff and customer accounts, appointments, enquiries, activity log. Demo items are left out unless you tick "Also include items that are still demo content".
+Copied: business details, booking rules, shop settings, logo and website images, media library, branches (opening hours, services, photo), services (with booking fees), product categories, products (with price, *Sell online* and stock), article categories, health articles and team profiles. **Never copied:** staff and customer accounts, appointments, enquiries, orders, payments, activity log, and the Paystack keys (they are in `.env`). Demo items are left out unless you tick "Also include items that are still demo content".
 
 Importing adds new items and updates items with the same web address (slug); it never deletes anything. You can keep editing directly in the live admin at any time. For very large files use the commands:
 
@@ -325,6 +380,9 @@ php artisan innes:import-content storage/app/innes-content-<date>.json.gz
 | Picture upload fails | Open **Admin → Media library**: the red box names the setting to change. Usually `upload_max_filesize` / `post_max_size` in `php.ini` (find it with `php --ini`; with Herd use Herd → Settings → PHP), then restart `php artisan serve` |
 | `php -r ...` still shows `2M / 8M` | You edited a different `php.ini`. Run `php --ini` and edit the file named on "Loaded Configuration File" |
 | `The upload was too large` page | Too many or too large pictures in one go. Upload fewer at a time or raise `post_max_size` |
+| No cart / "Add to cart" button | `PAYSTACK_SECRET_KEY` is missing from `.env` (run `php artisan config:clear` after adding it), or the product has no price, is not ticked *Sell online*, is unpublished or out of stock |
+| "The payment provider refused the request" | Wrong or mismatched Paystack keys (test and live keys mixed), or the currency is not enabled on the Paystack account |
+| Paid on Paystack but order still "Awaiting payment" | The customer closed the page before returning. Set the webhook URL (live site), or click **Check again** in Admin → Payments |
 
 ---
 
@@ -346,7 +404,7 @@ Code style:
 vendor/bin/pint --test
 ```
 
-The suite (124 tests) covers: public pages and draft visibility, search and filters, booking validation (past dates, closed days, lead time, slot grid, branch/service combinations, spam, rate limits), pending status, status transitions and history, capacity conflicts, the role matrix, guest and customer exclusion from admin, customer ownership, cut-off rules, CRUD for services, products, branches, articles and team profiles, upload validation and image processing, media library, website images, content transfer (including tampered files), the database viewer, staff privilege escalation, CSRF, output escaping, no exposure of sensitive data and no committed secrets. GitHub Actions runs the suite on MySQL 8 for every push.
+The suite (139 tests) covers: public pages and draft visibility, search and filters, booking validation (past dates, closed days, lead time, slot grid, branch/service combinations, spam, rate limits), pending status, status transitions and history, capacity conflicts, the role matrix, guest and customer exclusion from admin, customer ownership, cut-off rules, CRUD for services, products, branches, articles and team profiles, upload validation and image processing, media library, website images, content transfer (including tampered files), the database viewer, the shop and Paystack payments (cart, checkout, server-side verification, tampered amounts, abandoned payments, stock, signed order links, webhook signatures, booking fees, order management and refunds), staff privilege escalation, CSRF, output escaping, no exposure of sensitive data and no committed secrets. GitHub Actions runs the suite on MySQL 8 for every push.
 
 ---
 
@@ -356,7 +414,7 @@ The suite (124 tests) covers: public pages and draft visibility, search and filt
 
 1. **Server:** PHP 8.3+, MySQL 8, HTTPS certificate, web root pointing at `public/`, `storage/` and `bootstrap/cache/` writable.
 2. **Code:** `composer install --no-dev --optimize-autoloader`. The built assets are already in `public/build`.
-3. **`.env`:** `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://your-domain`, `FORCE_HTTPS=true`, `SESSION_SECURE_COOKIE=true`, the MySQL `DB_*` lines (a user with rights only on this database), and real `MAIL_*` SMTP settings. Never commit `.env`.
+3. **`.env`:** `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://your-domain`, `FORCE_HTTPS=true`, `SESSION_SECURE_COOKIE=true`, the MySQL `DB_*` lines (a user with rights only on this database), real `MAIL_*` SMTP settings and the `PAYSTACK_*` keys. Never commit `.env`. Set the Paystack webhook URL to `https://your-domain/paystack/webhook`.
 4. **Database:** `php artisan key:generate`, then `php artisan migrate --force`, then `php artisan db:seed --force` (in production this creates the roles only, never demo data).
 5. **First administrator** (there is no default password): `php artisan innes:create-admin`, or set `INITIAL_ADMIN_EMAIL` / `INITIAL_ADMIN_PASSWORD` in `.env`, run `php artisan innes:create-admin --from-env` and then delete those values from `.env`.
 6. **Caches:** `php artisan storage:link`, then `php artisan config:cache`, `php artisan route:cache`, `php artisan view:cache`.
@@ -383,6 +441,7 @@ No scheduled tasks are needed. Notifications are sent immediately and their outc
 - Approved service descriptions, products and brands, prices (optional) and article content, with clinical review
 - Booking rules: slot length, capacity per slot, minimum notice, booking window, cancellation cut-off
 - Whether customer accounts are wanted (`FEATURE_CUSTOMER_ACCOUNTS`)
+- Shop: which products are sold online and at what price, stock levels, pickup/delivery options and fee, returns and refund policy, and the prescription-check process; booking fees per service and the refund policy for declined or cancelled appointments; when to switch Paystack to live keys
 - Notification wording, staff alert address, SMTP provider; whether SMS is wanted later (`NotificationService` is ready for another channel)
 - Logo and brand assets, licensed photography, company history, mission, vision and values, and team profiles (with each person's consent)
 - Privacy notice and consent wording, which need review against Ghana's Data Protection Act, 2012 (Act 843); data-retention period

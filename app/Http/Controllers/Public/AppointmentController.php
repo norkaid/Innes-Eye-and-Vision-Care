@@ -64,9 +64,12 @@ class AppointmentController extends Controller
         $result = $appointments->createRequest($request->appointmentData(), $request->user());
 
         // Only the reference is passed on – never the internal ID or customer details.
+        $appointment = $result['appointment'];
+
         return redirect()->route('appointments.received')
-            ->with('appointment_reference', $result['appointment']->reference_code)
-            ->with('appointment_acknowledged', $result['acknowledged']);
+            ->with('appointment_reference', $appointment->reference_code)
+            ->with('appointment_acknowledged', $result['acknowledged'])
+            ->with('appointment_payment', $appointment->canBePaid() ? ['url' => $appointment->paymentUrl(), 'amount' => (float) $appointment->amount_due] : null);
     }
 
     public function received(Request $request)
@@ -74,6 +77,7 @@ class AppointmentController extends Controller
         return view('public.appointments.received', [
             'reference' => $request->session()->get('appointment_reference'),
             'acknowledged' => (bool) $request->session()->get('appointment_acknowledged'),
+            'payment' => $request->session()->get('appointment_payment'),
         ]);
     }
 }

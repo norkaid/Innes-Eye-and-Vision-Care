@@ -83,6 +83,27 @@
             </form>
         @endcan
 
+        @can('settings.general')
+            @php($paystackReady = app(\App\Services\PaystackClient::class)->configured())
+            <form method="POST" action="{{ route('admin.settings.update') }}" class="card space-y-5 p-6" novalidate>
+                @csrf @method('PUT')
+                <input type="hidden" name="section" value="shop">
+                <h2 class="text-lg font-semibold">Shop &amp; online payments</h2>
+                @if (! $paystackReady)
+                    <x-alert type="warning" title="Paystack is not set up">The shop and booking-fee payments stay hidden until <code>PAYSTACK_SECRET_KEY</code> is added to the <code>.env</code> file.</x-alert>
+                @else
+                    <p class="text-sm">Online payments are handled by Paystack ({{ app(\App\Services\PaystackClient::class)->isTestMode() ? 'test mode – no real money' : 'live mode' }}). Products are sold online when "Sell online" is ticked on the product; appointment fees are set on each service.</p>
+                @endif
+                <div class="grid gap-5 sm:grid-cols-2">
+                    <x-form.checkbox name="shop_pickup_enabled" label="Customers can collect orders from a branch" :checked="filter_var($values['shop_pickup_enabled'], FILTER_VALIDATE_BOOL)" />
+                    <x-form.checkbox name="shop_delivery_enabled" label="Offer delivery" :checked="filter_var($values['shop_delivery_enabled'], FILTER_VALIDATE_BOOL)" />
+                    <x-form.input name="shop_delivery_fee" type="number" step="0.01" min="0" label="Delivery fee (GH₵)" :value="$values['shop_delivery_fee']" />
+                    <x-form.input name="shop_delivery_note" label="Delivery note shown at checkout" :value="$values['shop_delivery_note']" hint="e.g. areas covered and delivery times." />
+                </div>
+                <button class="btn-primary" type="submit">Save shop settings</button>
+            </form>
+        @endcan
+
         @can('settings.system')
             <form method="POST" action="{{ route('admin.settings.update') }}" class="card space-y-5 p-6" novalidate>
                 @csrf @method('PUT')

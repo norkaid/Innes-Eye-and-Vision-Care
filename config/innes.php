@@ -8,6 +8,10 @@ return [
     */
     'features' => [
         'customer_accounts' => (bool) env('FEATURE_CUSTOMER_ACCOUNTS', true),
+        // Online shop for products marked "sell online". Also needs Paystack keys.
+        'shop' => (bool) env('FEATURE_SHOP', true),
+        // Online payment of a service's booking fee. Also needs Paystack keys.
+        'appointment_payments' => (bool) env('FEATURE_APPOINTMENT_PAYMENTS', true),
     ],
 
     /*
@@ -75,6 +79,9 @@ return [
         'media.manage' => 'Upload, edit and delete media library images',
         'database.view' => 'Browse database tables (read-only, sensitive columns hidden)',
         'content.transfer' => 'Export website content to a file and import it on another copy of the site',
+        'orders.view' => 'View shop orders',
+        'orders.manage' => 'Update shop orders (prepare, hand over, cancel, record refunds)',
+        'payments.view' => 'View online payments',
     ],
 
     /*
@@ -96,7 +103,7 @@ return [
                 'dashboard.view', 'appointments.view', 'appointments.manage', 'customers.view', 'customers.manage',
                 'enquiries.view', 'enquiries.manage', 'services.manage', 'products.manage', 'branches.manage',
                 'articles.manage', 'settings.general', 'reports.view', 'reports.export', 'audit.view',
-                'media.manage', 'team.manage',
+                'media.manage', 'team.manage', 'orders.view', 'orders.manage', 'payments.view',
             ],
         ],
         'receptionist' => [
@@ -105,7 +112,7 @@ return [
             'description' => 'Appointment requests and customer enquiries, with the customer details needed for those tasks.',
             'permissions' => [
                 'dashboard.view', 'appointments.view', 'appointments.manage', 'customers.view',
-                'enquiries.view', 'enquiries.manage',
+                'enquiries.view', 'enquiries.manage', 'orders.view', 'orders.manage',
             ],
         ],
         'content-manager' => [
@@ -144,5 +151,9 @@ return [
         'cancellation_cutoff_hours' => 24,
         'notify_customer_emails' => true,
         'notify_staff_email' => null,
+        'shop_pickup_enabled' => true,
+        'shop_delivery_enabled' => false,
+        'shop_delivery_fee' => 0,
+        'shop_delivery_note' => null,
     ],
 ];

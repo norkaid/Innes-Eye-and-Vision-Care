@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\CustomerAccountsEnabled;
 use App\Http\Middleware\EnsureCustomer;
+use App\Http\Middleware\EnsureShopEnabled;
 use App\Http\Middleware\EnsureStaff;
 use App\Http\Middleware\LogoutInactiveUsers;
 use App\Http\Middleware\SecurityHeaders;
@@ -21,7 +22,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'staff' => EnsureStaff::class,
             'customer' => EnsureCustomer::class,
             'customer.accounts' => CustomerAccountsEnabled::class,
+            'shop' => EnsureShopEnabled::class,
         ]);
+        // Paystack's webhook is authenticated by its HMAC signature instead of a CSRF token.
+        $middleware->validateCsrfTokens(except: ['paystack/webhook']);
         $middleware->web(append: [
             LogoutInactiveUsers::class,
             SecurityHeaders::class,
