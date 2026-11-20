@@ -20,14 +20,15 @@ A web platform for **Innes Eye & Visioncare Centre, Ghana**. It combines a publi
 3. [Set up the system on your PC](#set-up-the-system-on-your-pc)
 4. [Everyday use on your PC](#everyday-use-on-your-pc)
 5. [Online shop and payments (Paystack)](#online-shop-and-payments-paystack)
-6. [Images and the media library](#images-and-the-media-library)
-7. [Viewing the database](#viewing-the-database)
-8. [Moving your content to the live site](#moving-your-content-to-the-live-site)
-9. [Troubleshooting](#troubleshooting)
-10. [Tests](#tests)
-11. [Deployment](#deployment)
-12. [Backups and recovery](#backups-and-recovery)
-13. [Decisions still needed from the business](#decisions-still-needed-from-the-business)
+6. [SMS and email notifications](#sms-and-email-notifications)
+7. [Images and the media library](#images-and-the-media-library)
+8. [Viewing the database](#viewing-the-database)
+9. [Moving your content to the live site](#moving-your-content-to-the-live-site)
+10. [Troubleshooting](#troubleshooting)
+11. [Tests](#tests)
+12. [Deployment](#deployment)
+13. [Backups and recovery](#backups-and-recovery)
+14. [Decisions still needed from the business](#decisions-still-needed-from-the-business)
 
 ---
 
@@ -317,21 +318,9 @@ Add a product to the cart, check out and on the Paystack page use Paystack's tes
 - In the Paystack dashboard set the **Webhook URL** to `https://your-domain/paystack/webhook`. Paystack then confirms payments even if a customer closes the browser before returning. (Webhooks cannot reach `localhost`, which is fine: on your PC the return from Paystack confirms the payment.)
 - When the business is ready to take real money, replace the test keys with the **live** keys (`pk_live_…`, `sk_live_…`) in the server's `.env` and run `php artisan config:cache`.
 
-### 5. SMS notifications
+### 5. Notifications
 
-Set an SMS provider in `.env` (Ghana: **Arkesel** or **Hubtel**; international: **Twilio**). Register a sender ID (max 11 characters) with the provider first.
-
-```
-SMS_DRIVER=arkesel
-SMS_SENDER_ID=InnesEye
-ARKESEL_API_KEY=your-arkesel-api-key
-```
-
-For Hubtel use `SMS_DRIVER=hubtel` with `HUBTEL_CLIENT_ID` / `HUBTEL_CLIENT_SECRET`; for Twilio `SMS_DRIVER=twilio` with `TWILIO_SID`, `TWILIO_TOKEN`, `TWILIO_FROM`. Run `php artisan config:clear` after changing `.env`.
-
-With `SMS_DRIVER=log` (the default on a PC) texts are only written to `storage/logs/laravel.log`, and with `MAIL_MAILER=log` emails are too: nothing reaches customers. To **check that customers really receive messages**, go to Admin → Settings → **Check customer notifications**, enter your own email and phone number and click **Send test**. The result says whether the message was delivered or only logged. Every customer message (sent, failed, skipped or logged) is also recorded in the `notification_deliveries` table (Admin → Database).
-
-For email, set real SMTP details in `.env` (for example a Hostinger mailbox: see the Hostinger guide, or Gmail with an app password).
+Customers are told about their deposit and appointment by SMS and/or email. See [SMS and email notifications](#sms-and-email-notifications) to set them up.
 
 ### How orders work
 
@@ -343,6 +332,139 @@ For email, set real SMTP details in `.env` (for example a Hostinger mailbox: see
 | Cancelled | Set by staff; paid items go back into stock. Refund the customer in the Paystack dashboard, then click **Record refund** |
 
 Prescription lenses and contact lenses need a valid prescription: the checkout tells customers the team will check it before the order is prepared.
+
+---
+
+## SMS and email notifications
+
+Customers choose on the booking form whether they want updates by **SMS**, **email** or both. They receive a message when:
+
+- their request is received (when no deposit is due),
+- their deposit is received,
+- their appointment is **confirmed** (date, time, branch and the balance to pay at the clinic),
+- a new time is proposed, or the request is declined or cancelled.
+
+Texts are short and never contain medical details. Staff choose whether to notify the customer each time they change a request (the *Notify the customer* box, ticked by default).
+
+> **On a PC nothing is delivered by default.** With `SMS_DRIVER=log` and `MAIL_MAILER=log`, messages are only written to `storage/logs/laravel.log`. Follow the steps below to reach real phones and inboxes.
+
+### Step 1: Open an account with an SMS provider
+
+The site works with these providers. **Arkesel** or **Hubtel** are the usual choice in Ghana.
+
+| Provider | Website | What you need from it |
+|---|---|---|
+| Arkesel | [arkesel.com](https://arkesel.com) | API key |
+| Hubtel | [hubtel.com](https://hubtel.com) | Client ID and client secret |
+| Twilio (international) | [twilio.com](https://www.twilio.com) | Account SID, auth token and a sending number |
+
+1. Create an account and buy some SMS credit (each text uses credit).
+2. Copy the key(s) listed above from the provider's dashboard (usually under *API*, *Developers* or *Settings*).
+
+### Step 2: Register a sender ID
+
+The sender ID is the name customers see instead of a phone number, e.g. `InnesEye`.
+
+- Maximum **11 characters**, letters and numbers only, no spaces.
+- Request it in the provider's dashboard. In Ghana, approval can take one or more working days, and **texts may not be delivered until it is approved**.
+
+### Step 3: Add the settings to `.env`
+
+Open `.env` and set the lines for your provider. Never commit `.env` or paste the keys anywhere public.
+
+**Arkesel:**
+
+```
+SMS_DRIVER=arkesel
+SMS_SENDER_ID=InnesEye
+ARKESEL_API_KEY=paste-your-api-key-here
+```
+
+**Hubtel:**
+
+```
+SMS_DRIVER=hubtel
+SMS_SENDER_ID=InnesEye
+HUBTEL_CLIENT_ID=paste-your-client-id
+HUBTEL_CLIENT_SECRET=paste-your-client-secret
+```
+
+**Twilio:**
+
+```
+SMS_DRIVER=twilio
+TWILIO_SID=paste-your-account-sid
+TWILIO_TOKEN=paste-your-auth-token
+TWILIO_FROM=+15551234567
+```
+
+Phone numbers are converted automatically: customers can type `024 123 4567`, `+233 24 123 4567` or `0233…`. Numbers starting with `0` are treated as Ghanaian (`SMS_COUNTRY_CODE=233`).
+
+### Step 4: Set up email
+
+Emails need a real mailbox. Replace the `MAIL_` lines in `.env`.
+
+**Hostinger mailbox** (create it in hPanel → *Emails*):
+
+```
+MAIL_MAILER=smtp
+MAIL_SCHEME=smtps
+MAIL_HOST=smtp.hostinger.com
+MAIL_PORT=465
+MAIL_USERNAME=no-reply@your-domain.com
+MAIL_PASSWORD=the-mailbox-password
+MAIL_FROM_ADDRESS=no-reply@your-domain.com
+MAIL_FROM_NAME="Innes Eye & Visioncare Centre"
+```
+
+**Gmail** (for testing on a PC): turn on 2-Step Verification on the Google account, create an **app password** (Google Account → Security → App passwords), then:
+
+```
+MAIL_MAILER=smtp
+MAIL_SCHEME=smtps
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=465
+MAIL_USERNAME=your-address@gmail.com
+MAIL_PASSWORD=the-16-character-app-password
+MAIL_FROM_ADDRESS=your-address@gmail.com
+MAIL_FROM_NAME="Innes Eye & Visioncare Centre"
+```
+
+### Step 5: Apply the changes
+
+```bash
+php artisan config:clear
+```
+
+Then restart the site (`Ctrl+C`, then `php artisan serve`). On the live server run `php artisan config:cache` instead.
+
+### Step 6: Switch customer messages on
+
+Sign in as **Super Admin** → **Settings** → *Appointment rules & notifications*:
+
+- tick **Send customer acknowledgement and status emails**,
+- tick **Send customers SMS updates**,
+- click **Save rules**.
+
+The line under the form shows the current email and SMS method; it should no longer say `log`.
+
+### Step 7: Send a test
+
+Still in **Settings**, go to **Check customer notifications**, enter **your own** email address and phone number and click **Send test**. The message at the top of the page tells you exactly what happened:
+
+| Result | Meaning |
+|---|---|
+| "Test email sent" / "Test SMS sent" | It works. Check your inbox (and spam folder) and your phone |
+| "…written to storage/logs/laravel.log only" | `MAIL_MAILER` or `SMS_DRIVER` is still `log`. Repeat steps 3–5 |
+| "SMS is switched off" | `SMS_DRIVER` is empty or misspelled |
+| "Arkesel: …" / "Hubtel: …" / "Twilio: …" | The provider refused the message: usually a wrong key, no credit, or a sender ID that is not approved yet |
+| "Email failed: …" | Wrong SMTP host, port, username or password |
+
+Finally, book a test appointment with your own phone number, pay the deposit with a Paystack test card, and confirm it in the admin: you should receive the confirmation text and email.
+
+### Checking what was sent
+
+Every customer message is recorded with its result (`sent`, `logged`, `skipped` or `failed`, plus the reason) in the `notification_deliveries` table. View it in **Admin → Database → Notification Deliveries**.
 
 ---
 
@@ -405,7 +527,7 @@ php artisan innes:import-content storage/app/innes-content-<date>.json.gz
 | No cart / "Add to cart" button | `PAYSTACK_SECRET_KEY` is missing from `.env` (run `php artisan config:clear` after adding it), or the product has no price, is not ticked *Sell online*, is unpublished or out of stock |
 | "The payment provider refused the request" | Wrong or mismatched Paystack keys (test and live keys mixed), or the currency is not enabled on the Paystack account |
 | Paid on Paystack but order still "Awaiting payment" | The customer closed the page before returning. Set the webhook URL (live site), or click **Check again** in Admin → Payments |
-| Customers don't receive SMS or email | `SMS_DRIVER` / `MAIL_MAILER` is `log` or missing, the provider key is wrong, or the sender ID is not approved. Use **Send test** in Admin → Settings: it shows the exact problem |
+| Customers don't receive SMS or email | Follow [SMS and email notifications](#sms-and-email-notifications) and use **Send test** in Admin → Settings: it shows the exact problem (still `log`, wrong key, no credit or sender ID not approved) |
 | "The deposit for this request has not been paid yet" when confirming | The customer has not finished paying. Send them the payment link shown on the request, or use **Record deposit paid at branch** |
 
 ---
