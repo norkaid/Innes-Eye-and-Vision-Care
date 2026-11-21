@@ -577,6 +577,10 @@ The suite (154 tests) covers: public pages and draft visibility, search and filt
 
 **Hostinger:** follow [docs/DEPLOY_HOSTINGER.md](docs/DEPLOY_HOSTINGER.md). In short, for any PHP host:
 
+> **Never upload the whole project into a web folder** (such as `public_html`). Only the `public/` folder may be reachable from the web; everything else (including `.env` with your keys and the database) must sit outside it. The project's top-level `.htaccess` refuses all web access as a safety net, so if you see *403 Forbidden* for the project folder, point the web address at `public/` instead (for example with a symbolic link: `ln -s ~/innes-app/public ~/public_html/innes`).
+>
+> On Apache servers that serve from a user folder (addresses like `/~username/...`), add a `RewriteBase` line after `RewriteEngine On` in `public/.htaccess`, e.g. `RewriteBase /~username/innes/`, otherwise every page except the home page shows *Not Found*.
+
 1. **Server:** PHP 8.3+, MySQL 8, HTTPS certificate, web root pointing at `public/`, `storage/` and `bootstrap/cache/` writable.
 2. **Code:** `composer install --no-dev --optimize-autoloader`. The built assets are already in `public/build`.
 3. **`.env`:** `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://your-domain`, `FORCE_HTTPS=true`, `SESSION_SECURE_COOKIE=true`, the MySQL `DB_*` lines (a user with rights only on this database), real `MAIL_*` SMTP settings and the `PAYSTACK_*` keys. Never commit `.env`. Set the Paystack webhook URL to `https://your-domain/paystack/webhook`.

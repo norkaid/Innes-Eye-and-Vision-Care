@@ -1,0 +1,5 @@
+# Safety net. This project folder must never be reachable from the web: only the
+# public/ folder may be (point the web address at public/, see README "Deployment").
+# If the whole project was uploaded into a web folder, Apache refuses everything here,
+# so .env, the database and the code cannot be downloaded.
+Require all denied
