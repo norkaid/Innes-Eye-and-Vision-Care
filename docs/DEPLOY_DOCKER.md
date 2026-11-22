@@ -116,6 +116,26 @@ docker compose exec app php artisan innes:import-content /tmp/content.json.gz --
 
 ---
 
+## Viewing the database in MySQL Workbench
+
+The Docker database is MySQL, so you can open it in MySQL Workbench (Workbench cannot open the SQLite file used by `php artisan serve`).
+
+1. Make sure the containers are running (`docker compose ps` shows `db` as *healthy*).
+2. In Workbench click **+** next to *MySQL Connections* and enter:
+
+   | Field | Value |
+   |---|---|
+   | Connection name | Innes Eye (Docker) |
+   | Hostname | `127.0.0.1` |
+   | Port | `3307` |
+   | Username | the `DB_USERNAME` from `.env.docker` (e.g. `innes`) |
+   | Password | **Store in Vault…** → the `DB_PASSWORD` from `.env.docker` |
+   | Default Schema | `innes` |
+
+3. Click **Test Connection**, then **OK**, and open it. The tables are under *Schemas → innes → Tables*; right-click a table → **Select Rows**.
+
+The port is only open to this computer. If 3307 is taken, set `DB_FORWARD_PORT=3308` before `docker compose up -d` and use that port in Workbench. Be careful when editing data directly: the admin pages check rules that Workbench does not.
+
 ## Everyday commands
 
 | Task | Command |
