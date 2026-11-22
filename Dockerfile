@@ -27,6 +27,7 @@ RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-avail
  && a2enconf innes
 
 COPY docker/php.ini /usr/local/etc/php/conf.d/innes.ini
+RUN sed -i 's/\r$//' /usr/local/etc/php/conf.d/innes.ini
 COPY --from=vendor /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
@@ -38,7 +39,8 @@ RUN composer dump-autoload --optimize --no-dev --classmap-authoritative \
  && chown -R www-data:www-data storage bootstrap/cache database
 
 COPY docker/entrypoint.sh /usr/local/bin/innes-entrypoint
-RUN chmod +x /usr/local/bin/innes-entrypoint
+# Strip Windows line endings in case the file was checked out on Windows.
+RUN sed -i 's/\r$//' /usr/local/bin/innes-entrypoint && chmod +x /usr/local/bin/innes-entrypoint
 
 EXPOSE 80
 ENTRYPOINT ["innes-entrypoint"]
