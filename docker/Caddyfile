@@ -1,0 +1,5 @@
+# Serves https://YOUR-DOMAIN with a free certificate and forwards to the app container.
+{$DOMAIN} {
+    encode gzip
+    reverse_proxy app:80
+}

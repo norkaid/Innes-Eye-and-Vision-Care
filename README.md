@@ -7,6 +7,7 @@ A web platform for **Innes Eye & Visioncare Centre, Ghana**. It combines a publi
 | Document | What it covers |
 |---|---|
 | [docs/DEPLOY_HOSTINGER.md](docs/DEPLOY_HOSTINGER.md) | Putting the site live on Hostinger, step by step |
+| [docs/DEPLOY_DOCKER.md](docs/DEPLOY_DOCKER.md) | Running the site with Docker (PC or any server), including HTTPS |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the code is organised, database relationships, design decisions |
 | [docs/DEMO_CONTENT.md](docs/DEMO_CONTENT.md) | Every piece of sample content that must be replaced |
 | [docs/PROJECT_BRIEF.md](docs/PROJECT_BRIEF.md), [docs/DEVELOPMENT_BRIEF.md](docs/DEVELOPMENT_BRIEF.md) | The original briefs |
@@ -574,6 +575,8 @@ The suite (154 tests) covers: public pages and draft visibility, search and filt
 ---
 
 ## Deployment
+
+**Docker (simplest on any server):** follow [docs/DEPLOY_DOCKER.md](docs/DEPLOY_DOCKER.md). In short: `cp .env.docker.example .env.docker`, edit it, then `docker compose up -d --build` and open http://localhost:8080.
 
 **Hostinger:** follow [docs/DEPLOY_HOSTINGER.md](docs/DEPLOY_HOSTINGER.md). In short, for any PHP host:
 

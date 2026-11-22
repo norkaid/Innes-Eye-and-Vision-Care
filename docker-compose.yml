@@ -1,0 +1,50 @@
+# Innes Eye & Visioncare Centre on Docker.
+#   1. cp .env.docker.example .env.docker   (then edit it)
+#   2. docker compose up -d --build
+#   3. open http://localhost:8080
+# Optional HTTPS for a real domain:  docker compose --profile https up -d --build
+services:
+  app:
+    build: .
+    image: innes-eye-app
+    restart: unless-stopped
+    env_file: .env.docker
+    ports:
+      - "${APP_PORT:-8080}:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - app-storage:/var/www/html/storage
+
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    env_file: .env.docker
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # Optional: automatic HTTPS (Let's Encrypt) for a real domain pointing at this machine.
+  caddy:
+    image: caddy:2
+    profiles: ["https"]
+    restart: unless-stopped
+    env_file: .env.docker
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+    depends_on:
+      - app
+
+volumes:
+  app-storage:
+  db-data:
+  caddy-data:

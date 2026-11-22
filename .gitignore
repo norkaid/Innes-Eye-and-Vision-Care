@@ -1,6 +1,9 @@
 *.log
 .DS_Store
 .env
+.env.*
+!.env.example
+!.env.docker.example
 .env.backup
 .env.production
 .phpactor.json
@@ -24,3 +27,8 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+# Local databases and editor files must never be committed
+*.sqlite
+*.sqlite-*
+/innes
+/.vs

@@ -32,7 +32,9 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn (Request $request) => $request->user()?->isStaff() ? route('admin.dashboard') : (config('innes.features.customer_accounts') ? route('account.index') : route('home')));
-        $middleware->trustProxies(at: env('TRUSTED_PROXIES') ? explode(',', env('TRUSTED_PROXIES')) : null);
+        // TRUSTED_PROXIES: "*" trusts any proxy (e.g. the Docker HTTPS proxy), or a comma-separated list of IPs.
+        $proxies = env('TRUSTED_PROXIES');
+        $middleware->trustProxies(at: $proxies === '*' ? '*' : ($proxies ? explode(',', $proxies) : null));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
