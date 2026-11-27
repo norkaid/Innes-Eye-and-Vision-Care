@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\MediaStore;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +27,7 @@ return new class extends Migration
         $disk = Storage::disk(config('innes.uploads.disk', 'public'));
         foreach (DB::table('media')->select('id', 'path')->get() as $media) {
             if ($disk->exists($media->path)) {
-                DB::table('media_contents')->insert(['media_id' => $media->id, 'data' => $disk->get($media->path)]);
+                MediaStore::put((int) $media->id, (string) $disk->get($media->path));
             }
         }
     }

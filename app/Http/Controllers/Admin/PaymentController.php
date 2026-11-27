@@ -25,7 +25,7 @@ class PaymentController extends Controller
         ]);
 
         $query = Payment::with('payable')
-            ->when($filters['q'] ?? null, fn ($q, $t) => $q->where(fn ($w) => $w->where('reference', 'like', "%{$t}%")->orWhere('customer_email', 'like', "%{$t}%")))
+            ->when($filters['q'] ?? null, fn ($q, $t) => $q->where(fn ($w) => $w->whereLike('reference', "%{$t}%")->orWhereLike('customer_email', "%{$t}%")))
             ->when($filters['status'] ?? null, fn ($q, $s) => $q->where('status', $s))
             ->when($filters['type'] ?? null, fn ($q, $t) => $q->where('payable_type', $t === 'order' ? (new Order)->getMorphClass() : (new Appointment)->getMorphClass()))
             ->when($filters['from'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '>=', $d))

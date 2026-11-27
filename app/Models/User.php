@@ -143,10 +143,10 @@ class User extends Authenticatable
 
         return $q->where(function (Builder $w) use ($term) {
             $like = '%'.$term.'%';
-            $w->where('first_name', 'like', $like)
-                ->orWhere('last_name', 'like', $like)
-                ->orWhere('email', 'like', $like)
-                ->orWhere('phone', 'like', $like);
+            $w->whereLike('first_name', $like)
+                ->orWhereLike('last_name', $like)
+                ->orWhereLike('email', $like)
+                ->orWhereLike('phone', $like);
         });
     }
 }

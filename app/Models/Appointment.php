@@ -104,10 +104,10 @@ class Appointment extends Model implements Payable
         }
         $like = '%'.$term.'%';
 
-        return $q->where(fn ($w) => $w->where('reference_code', 'like', $like)
-            ->orWhere('customer_name', 'like', $like)
-            ->orWhere('customer_email', 'like', $like)
-            ->orWhere('customer_phone', 'like', $like));
+        return $q->where(fn ($w) => $w->whereLike('reference_code', $like)
+            ->orWhereLike('customer_name', $like)
+            ->orWhereLike('customer_email', $like)
+            ->orWhereLike('customer_phone', $like));
     }
 
     public function payments(): MorphMany

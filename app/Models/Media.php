@@ -48,7 +48,7 @@ class Media extends Model
 
     public function scopeSearch(Builder $query, ?string $term): Builder
     {
-        return $term ? $query->where(fn ($q) => $q->where('original_name', 'like', "%{$term}%")->orWhere('alt_text', 'like', "%{$term}%")) : $query;
+        return $term ? $query->where(fn ($q) => $q->whereLike('original_name', "%{$term}%")->orWhereLike('alt_text', "%{$term}%")) : $query;
     }
 
     /**

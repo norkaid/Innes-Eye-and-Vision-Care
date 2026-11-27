@@ -190,7 +190,7 @@ class ImageUploader
                 'height' => $image['height'],
                 'uploaded_by' => Auth::id(),
             ]);
-            $media->content()->create(['data' => $data]);
+            MediaStore::put($media->id, $data);
 
             return $media;
         });

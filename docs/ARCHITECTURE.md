@@ -65,6 +65,8 @@ Foreign keys use `restrictOnDelete` where history must be kept (an appointment's
 
 The code runs on SQLite (one file, used on a PC: nothing to install) and MySQL (the live server). Migrations avoid database-specific features except one: on MySQL the image column is widened to `MEDIUMBLOB`. Tests run on both. The local database file is never committed, because it can contain customer details; **Content transfer** moves the website content between the two.
 
+
+**PostgreSQL / Supabase** is supported too: `MediaStore` binds image bytes as binary (`PARAM_LOB`), which PostgreSQL's `bytea` requires, and reads PostgreSQL's binary streams back into strings; searches use `whereLike` (case-insensitive `ILIKE` on PostgreSQL). `database/sql/supabase-schema.sql` is generated from the migrations and enables Row Level Security on every table so Supabase's REST API cannot read the data; the site connects as the table owner and is unaffected. The full test suite passes on SQLite, MySQL and PostgreSQL.
 ## Privacy choices
 
 - The booking form collects only contact details, branch, service, preferred time and an optional 500-character note, with a warning not to enter medical details.

@@ -54,9 +54,9 @@ class Product extends Model
         }
         $like = '%'.$term.'%';
 
-        return $q->where(fn ($w) => $w->where('name', 'like', $like)
-            ->orWhere('brand', 'like', $like)
-            ->orWhere('short_description', 'like', $like));
+        return $q->where(fn ($w) => $w->whereLike('name', $like)
+            ->orWhereLike('brand', $like)
+            ->orWhereLike('short_description', $like));
     }
 
     /** Can be added to the cart: shop on, sold online, priced, published and in stock. */

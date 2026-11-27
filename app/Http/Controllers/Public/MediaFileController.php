@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Media;
+use App\Services\MediaStore;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -28,11 +29,8 @@ class MediaFileController extends Controller
             return response('', 304, $headers);
         }
 
-        $data = $media->content()->value('data');
+        $data = MediaStore::bytes($media->content()->value('data'));
         abort_if($data === null, 404);
-        if (is_resource($data)) {
-            $data = stream_get_contents($data);
-        }
         $type = in_array($media->mime_type, self::SAFE_TYPES, true) ? $media->mime_type : 'application/octet-stream';
 
         return response($data, 200, $headers + [

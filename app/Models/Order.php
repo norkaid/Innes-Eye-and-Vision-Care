@@ -87,10 +87,10 @@ class Order extends Model implements Payable
         }
         $like = '%'.$term.'%';
 
-        return $q->where(fn ($w) => $w->where('reference', 'like', $like)
-            ->orWhere('customer_name', 'like', $like)
-            ->orWhere('customer_email', 'like', $like)
-            ->orWhere('customer_phone', 'like', $like));
+        return $q->where(fn ($w) => $w->whereLike('reference', $like)
+            ->orWhereLike('customer_name', $like)
+            ->orWhereLike('customer_email', $like)
+            ->orWhereLike('customer_phone', $like));
     }
 
     /** Link to the order page that works without signing in (signed, cannot be guessed). */

@@ -47,8 +47,8 @@ class Enquiry extends Model
         }
         $like = '%'.$term.'%';
 
-        return $q->where(fn ($w) => $w->where('name', 'like', $like)
-            ->orWhere('email', 'like', $like)
-            ->orWhere('subject', 'like', $like));
+        return $q->where(fn ($w) => $w->whereLike('name', $like)
+            ->orWhereLike('email', $like)
+            ->orWhereLike('subject', $like));
     }
 }

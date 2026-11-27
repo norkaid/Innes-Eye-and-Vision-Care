@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\MediaStore;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -15,6 +16,17 @@ class MediaContent extends Model
     public $timestamps = false;
 
     protected $fillable = ['media_id', 'data'];
+
+    /** PostgreSQL returns binary columns as streams: read them once into a string. */
+    protected static function booted(): void
+    {
+        static::retrieved(function (MediaContent $content) {
+            $raw = $content->getAttributes()['data'] ?? null;
+            if (is_resource($raw)) {
+                $content->setRawAttributes(['data' => MediaStore::bytes($raw)] + $content->getAttributes(), true);
+            }
+        });
+    }
 
     public function media(): BelongsTo
     {

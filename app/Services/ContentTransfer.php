@@ -97,7 +97,7 @@ class ContentTransfer
                 ->map(fn ($m) => [
                     'folder' => $m->folder, 'path' => $m->path, 'original_name' => $m->original_name, 'alt_text' => $m->alt_text,
                     'mime_type' => $m->mime_type, 'width' => $m->width, 'height' => $m->height,
-                    'data' => base64_encode(is_resource($m->data) ? stream_get_contents($m->data) : (string) $m->data),
+                    'data' => base64_encode((string) MediaStore::bytes($m->data)),
                 ])->values()->all(),
             'services' => $services->map(fn ($s) => $this->row($s, 'services'))->values()->all(),
             'branches' => $branches->map(fn ($b) => $this->row($b, 'branches') + [
@@ -309,7 +309,7 @@ class ContentTransfer
         } else {
             $id = DB::table('media')->insertGetId($values + ['path' => $path, 'created_at' => now()]);
         }
-        DB::table('media_contents')->insert(['media_id' => $id, 'data' => $bytes]);
+        MediaStore::put((int) $id, $bytes);
         $tally('Media library images', ! $existing);
     }
 

@@ -18,7 +18,7 @@ A web platform for **Innes Eye & Visioncare Centre, Ghana**. It combines a publi
 
 1. [Features](#features)
 2. [Roles](#roles)
-3. [Set up the system on your PC](#set-up-the-system-on-your-pc)
+3. [Set up the system on your PC](#set-up-the-system-on-your-pc) (including [Using Supabase](#using-supabase-as-the-database))
 4. [Everyday use on your PC](#everyday-use-on-your-pc)
 5. [Online shop and payments (Paystack)](#online-shop-and-payments-paystack)
 6. [SMS and email notifications](#sms-and-email-notifications)
@@ -261,6 +261,53 @@ Content entered in SQLite does not move to MySQL automatically; use [Content tra
 ### Turning on payments on your PC
 
 Add your Paystack **test** keys to `.env` (see [Online shop and payments](#online-shop-and-payments-paystack)), then run `php artisan config:clear` and restart `php artisan serve`.
+
+---
+
+### Using Supabase as the database
+
+The site can use a **Supabase** (PostgreSQL) database instead of SQLite or MySQL. Laravel connects to the database directly, so the Supabase **API keys (anon / service_role) are not needed**: only the database connection details. Keep them in `.env`, never in chat or Git.
+
+1. **Export your current content first** (if you have any): Admin → **Content transfer** → *Download export file*. After switching databases the site will be empty.
+2. **Create the project** at [supabase.com](https://supabase.com): *New project*, choose a region close to Ghana (e.g. Europe West) and **write down the database password**.
+3. **Create the tables:** Supabase → **SQL Editor** → *New query* → paste the whole of [`database/sql/supabase-schema.sql`](database/sql/supabase-schema.sql) → **Run**. It creates all tables, the staff roles and the migration history, and locks Supabase's public API out of the data (Row Level Security on every table). *(Alternative: skip this and run `php artisan migrate --force` then `php artisan db:seed --force` after step 5.)*
+4. **Get the connection details:** Supabase → **Connect** (top of the dashboard) → **Session pooler**. Use the session pooler (port **5432**): it works on every network, unlike the direct connection, which needs IPv6.
+5. **Put them in `.env`** (replace the `DB_CONNECTION=sqlite` line):
+
+   ```
+   DB_CONNECTION=pgsql
+   DB_HOST=aws-0-your-region.pooler.supabase.com
+   DB_PORT=5432
+   DB_DATABASE=postgres
+   DB_USERNAME=postgres.your-project-ref
+   DB_PASSWORD=your-database-password
+   DB_SSLMODE=require
+   ```
+
+6. **Apply and check:**
+
+   ```bash
+   php artisan config:clear
+   ```
+
+   ```bash
+   php artisan innes:doctor
+   ```
+
+   The Database line should show `[OK] pgsql: postgres` and `All tables are up to date`.
+7. **Create the first admin** and start the site:
+
+   ```bash
+   php artisan innes:create-admin
+   ```
+
+   ```bash
+   php artisan serve
+   ```
+
+8. **Import your content:** Admin → **Content transfer** → choose the file from step 1 → *Import content*.
+
+You can view the data in Supabase's **Table Editor**. Edit data through the admin pages rather than directly, because the admin checks the business rules. Supabase's free plan pauses a project after a week without activity; resume it from the dashboard if the site says it cannot reach the database.
 
 ---
 

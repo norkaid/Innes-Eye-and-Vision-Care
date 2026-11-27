@@ -16,7 +16,7 @@ class ServiceController extends Controller
         $q = trim($request->string('q')->toString());
 
         $services = Service::published()->ordered()
-            ->when($q !== '', fn ($query) => $query->where(fn ($w) => $w->where('name', 'like', "%{$q}%")->orWhere('short_description', 'like', "%{$q}%")))
+            ->when($q !== '', fn ($query) => $query->where(fn ($w) => $w->whereLike('name', "%{$q}%")->orWhereLike('short_description', "%{$q}%")))
             ->when($branch, fn ($query) => $query->whereHas('branches', fn ($b) => $b->whereKey($branch->id)))
             ->paginate(12)->withQueryString();
 
